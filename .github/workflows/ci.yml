@@ -132,7 +132,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Scan de vulnerabilidades das imagens (Trivy)
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: cashflow/transactions:local
           severity: CRITICAL,HIGH
