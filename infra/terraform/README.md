@@ -37,6 +37,6 @@ Imagens: o pipeline de release publica `cashflow/{identity,transactions,consolid
 - Apenas `ca-gateway` e `ca-web` têm ingress externo, e o Gateway exige o header `X-Azure-FDID` do perfil do Front Door (bloqueia bypass do WAF).
 
 ## Validação
-`terraform fmt -check -recursive` e `terraform validate` rodam no CI (job `terraform`). Provedores fixados: azurerm `~> 4.81.0`, random `~> 3.9.1`, tls `~> 4.4.2`.
+`terraform fmt -check -recursive` e `terraform validate` rodam no CI (job `terraform`). Provedores fixados: azurerm `~> 5.12.0`, random `~> 3.9.1`, tls `~> 4.4.2`.
 
 Custos: [`docs/finops/estimativa-custos.md`](../../docs/finops/estimativa-custos.md).
