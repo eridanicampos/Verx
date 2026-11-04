@@ -356,3 +356,6 @@ Lista completa em [`docs/adr`](docs/adr/README.md).
 
 ## O que ficaria para a próxima iteração
 IdP corporativo com MFA, cluster RabbitMQ de 3 nós, estornos com aprovação, transferências via saga, cache distribuído e CDC no lugar do polling do outbox — detalhado em [docs/arquitetura/08-oportunidades-e-migracao.md](docs/arquitetura/08-oportunidades-e-migracao.md).
+
+## Autor
+Desenvolvido por **Eridani Campos** — [@eridanicampos](https://github.com/eridanicampos).
