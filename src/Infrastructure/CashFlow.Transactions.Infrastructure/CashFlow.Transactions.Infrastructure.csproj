@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\Application\CashFlow.Transactions.Application\CashFlow.Transactions.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" />
+    <PackageReference Include="RabbitMQ.Client" />
+    <PackageReference Include="Polly.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="CashFlow.Transactions.IntegrationTests" />
+    <InternalsVisibleTo Include="CashFlow.Transactions.UnitTests" />
+  </ItemGroup>
+</Project>

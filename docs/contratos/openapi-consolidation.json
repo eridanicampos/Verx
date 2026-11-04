@@ -1,0 +1,300 @@
+{
+    "openapi": "3.1.1",
+    "info": {
+        "title": "CashFlow.Consolidation.Api | v1",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:5002/"
+        }
+    ],
+    "paths": {
+        "/api/v1/accounts/{accountId}/balance": {
+            "get": {
+                "tags": [
+                    "Consolidado"
+                ],
+                "summary": "Posição consolidada (saldo) da conta em um instante (padrão: agora)",
+                "operationId": "GetBalanceAt",
+                "parameters": [
+                    {
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "at",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BalanceResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "application/json": {}
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/accounts/{accountId}/daily-balances": {
+            "get": {
+                "tags": [
+                    "Consolidado"
+                ],
+                "summary": "Relatório de consolidado diário com saldo de fechamento",
+                "operationId": "GetDailyBalances",
+                "parameters": [
+                    {
+                        "name": "accountId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/DailyBalanceResponse"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "application/json": {}
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProblemDetails"
+                                }
+                            },
+                            "application/json": {}
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "BalanceResponse": {
+                "required": [
+                    "accountId",
+                    "at",
+                    "balance",
+                    "totalCredits",
+                    "totalDebits",
+                    "lastEntryAt"
+                ],
+                "type": "object",
+                "properties": {
+                    "accountId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "balance": {
+                        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+                        "type": [
+                            "number",
+                            "string"
+                        ],
+                        "format": "double"
+                    },
+                    "totalCredits": {
+                        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+                        "type": [
+                            "number",
+                            "string"
+                        ],
+                        "format": "double"
+                    },
+                    "totalDebits": {
+                        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+                        "type": [
+                            "number",
+                            "string"
+                        ],
+                        "format": "double"
+                    },
+                    "lastEntryAt": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "format": "date-time"
+                    },
+                    "consistency": {
+                        "type": "string",
+                        "default": "eventual"
+                    }
+                }
+            },
+            "DailyBalanceResponse": {
+                "required": [
+                    "date",
+                    "totalCredits",
+                    "totalDebits",
+                    "net",
+                    "closingBalance",
+                    "entryCount"
+                ],
+                "type": "object",
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "totalCredits": {
+                        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+                        "type": [
+                            "number",
+                            "string"
+                        ],
+                        "format": "double"
+                    },
+                    "totalDebits": {
+                        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+                        "type": [
+                            "number",
+                            "string"
+                        ],
+                        "format": "double"
+                    },
+                    "net": {
+                        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+                        "type": [
+                            "number",
+                            "string"
+                        ],
+                        "format": "double"
+                    },
+                    "closingBalance": {
+                        "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+                        "type": [
+                            "number",
+                            "string"
+                        ],
+                        "format": "double"
+                    },
+                    "entryCount": {
+                        "pattern": "^-?(?:0|[1-9]\\d*)$",
+                        "type": [
+                            "integer",
+                            "string"
+                        ],
+                        "format": "int32"
+                    }
+                }
+            },
+            "ProblemDetails": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "title": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "status": {
+                        "pattern": "^-?(?:0|[1-9]\\d*)$",
+                        "type": [
+                            "null",
+                            "integer",
+                            "string"
+                        ],
+                        "format": "int32"
+                    },
+                    "detail": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "instance": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Consolidado"
+        }
+    ]
+}

@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Camada de domínio: sem dependências externas. -->
+</Project>

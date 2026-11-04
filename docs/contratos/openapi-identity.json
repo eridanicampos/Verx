@@ -1,0 +1,132 @@
+{
+    "openapi": "3.1.1",
+    "info": {
+        "title": "CashFlow.Identity.Api | v1",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:5003/"
+        }
+    ],
+    "paths": {
+        "/auth/token": {
+            "post": {
+                "tags": [
+                    "Autentica\u00e7\u00e3o"
+                ],
+                "summary": "Autentica com usu\u00e1rio e senha e emite access token (JWT RS256) + refresh token",
+                "operationId": "IssueToken",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TokenRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/auth/refresh": {
+            "post": {
+                "tags": [
+                    "Autentica\u00e7\u00e3o"
+                ],
+                "summary": "Rotaciona o refresh token. Reuso de token antigo revoga toda a sess\u00e3o.",
+                "operationId": "RefreshToken",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RefreshRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/auth/revoke": {
+            "post": {
+                "tags": [
+                    "Autentica\u00e7\u00e3o"
+                ],
+                "summary": "Logout: revoga a cadeia de refresh tokens",
+                "operationId": "RevokeToken",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RefreshRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "RefreshRequest": {
+                "required": [
+                    "refreshToken"
+                ],
+                "type": "object",
+                "properties": {
+                    "refreshToken": {
+                        "type": [
+                            "null",
+                            "string"
+                        ]
+                    },
+                    "useCookie": {
+                        "type": "boolean",
+                        "default": false
+                    }
+                }
+            },
+            "TokenRequest": {
+                "required": [
+                    "username",
+                    "password"
+                ],
+                "type": "object",
+                "properties": {
+                    "username": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string"
+                    },
+                    "useCookie": {
+                        "type": "boolean",
+                        "default": false
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Autentica\u00e7\u00e3o"
+        }
+    ]
+}

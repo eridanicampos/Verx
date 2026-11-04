@@ -1,0 +1,9 @@
+{
+  "eventId": "0192f3a1-7c2e-7b1a-9f00-1a2b3c4d5e6f",
+  "transactionId": "0192f3a1-7c2e-7b1a-9f00-aaaaaaaaaaaa",
+  "accountId": "0192f3a1-0000-7000-8000-bbbbbbbbbbbb",
+  "type": "credit",
+  "amount": 150.75,
+  "currency": "BRL",
+  "occurredAt": "2026-10-29T13:45:10.123+00:00"
+}

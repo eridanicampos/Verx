@@ -1,0 +1,73 @@
+asyncapi: 3.0.0
+info:
+  title: CashFlow — eventos do contexto de Lançamentos
+  version: 1.0.0
+  description: |
+    Contratos publicados pelo serviço de Lançamentos via Transactional Outbox.
+    Entrega at-least-once; consumidores DEVEM ser idempotentes pelo `messageId` (= `eventId`).
+    Mudanças incompatíveis geram nova versão (`.v2`) publicada em paralelo durante a migração.
+defaultContentType: application/json
+servers:
+  local:
+    host: localhost:5672
+    protocol: amqp
+channels:
+  transactionRegistered:
+    address: cashflow.transactions
+    description: Exchange topic; routing key `transaction.registered.v1`.
+    messages:
+      transactionRegistered:
+        $ref: '#/components/messages/TransactionRegisteredV1'
+  accountOpened:
+    address: cashflow.transactions
+    description: Exchange topic; routing key `account.opened.v1`.
+    messages:
+      accountOpened:
+        $ref: '#/components/messages/AccountOpenedV1'
+operations:
+  publishTransactionRegistered:
+    action: send
+    channel:
+      $ref: '#/channels/transactionRegistered'
+  publishAccountOpened:
+    action: send
+    channel:
+      $ref: '#/channels/accountOpened'
+components:
+  messages:
+    TransactionRegisteredV1:
+      name: transaction.registered.v1
+      headers:
+        type: object
+        properties:
+          message_id: { type: string, format: uuid, description: "AMQP message-id = eventId" }
+          type: { type: string, const: transaction.registered.v1 }
+          traceparent: { type: string, description: "W3C Trace Context" }
+      payload:
+        type: object
+        additionalProperties: true
+        required: [eventId, transactionId, accountId, type, amount, currency, occurredAt]
+        properties:
+          eventId: { type: string, format: uuid }
+          transactionId: { type: string, format: uuid }
+          accountId: { type: string, format: uuid }
+          type: { type: string, enum: [credit, debit] }
+          amount: { type: number, exclusiveMinimum: 0, multipleOf: 0.01 }
+          currency: { type: string, enum: [BRL] }
+          occurredAt: { type: string, format: date-time }
+      examples:
+        - payload:
+            $ref: './exemplos/transaction.registered.v1.json'
+    AccountOpenedV1:
+      name: account.opened.v1
+      payload:
+        type: object
+        additionalProperties: true
+        required: [eventId, accountId, occurredAt]
+        properties:
+          eventId: { type: string, format: uuid }
+          accountId: { type: string, format: uuid }
+          occurredAt: { type: string, format: date-time }
+      examples:
+        - payload:
+            $ref: './exemplos/account.opened.v1.json'

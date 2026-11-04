@@ -1,0 +1,21 @@
+bin/
+obj/
+*.user
+.vs/
+.vscode/
+.idea/
+TestResults/
+coverage/
+*.trx
+# Segredos gerados localmente (scripts/generate-secrets.*) nunca vão para o repositório
+secrets/
+*.pem
+.env
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl.bak
+loadtest-results/

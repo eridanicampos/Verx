@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CashFlow · Console Operacional</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>CashFlow</h1>
+    <span id="session" class="muted">não autenticado</span>
+    <button id="logout" class="link" hidden>Sair</button>
+  </header>
+
+  <main>
+    <section id="login-view" class="card">
+      <h2>Entrar</h2>
+      <form id="login-form" autocomplete="on">
+        <label>Usuário <input name="username" required autocomplete="username"></label>
+        <label>Senha <input name="password" type="password" required autocomplete="current-password"></label>
+        <button type="submit">Entrar</button>
+      </form>
+      <p class="muted">O refresh token fica em cookie HttpOnly; o access token só em memória.</p>
+    </section>
+
+    <div id="app-view" hidden>
+      <section class="card">
+        <h2>Abrir conta</h2>
+        <form id="account-form">
+          <label>Titular <input name="holderName" required maxlength="200"></label>
+          <label>CPF/CNPJ <input name="holderDocument" required inputmode="numeric"></label>
+          <label>Limite <input name="overdraftLimit" type="number" min="0" step="0.01" value="0"></label>
+          <button type="submit">Abrir</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Lançamento</h2>
+        <form id="tx-form">
+          <label>Conta <input name="accountId" required placeholder="UUID da conta"></label>
+          <label>Tipo
+            <select name="type"><option value="credit">Crédito</option><option value="debit">Débito</option></select>
+          </label>
+          <label>Valor (R$) <input name="amount" type="number" min="0.01" step="0.01" required></label>
+          <label>Descrição <input name="description" maxlength="250"></label>
+          <button type="submit">Registrar</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Posição consolidada</h2>
+        <form id="balance-form">
+          <label>Conta <input name="accountId" required placeholder="UUID da conta"></label>
+          <label>Em (opcional) <input name="at" type="datetime-local"></label>
+          <button type="submit">Consultar saldo</button>
+        </form>
+        <form id="daily-form">
+          <label>De <input name="from" type="date" required></label>
+          <label>Até <input name="to" type="date" required></label>
+          <button type="submit">Relatório diário</button>
+        </form>
+        <table id="daily-table" hidden>
+          <thead><tr><th>Data</th><th>Créditos</th><th>Débitos</th><th>Líquido</th><th>Saldo final</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2>Resultado</h2>
+      <pre id="output" aria-live="polite">—</pre>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

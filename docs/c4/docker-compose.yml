@@ -1,0 +1,31 @@
+# Structurizr (C4 + documentação + ADRs) com renderização local dos blocos ```mermaid.
+#   docker compose -f docs/c4/docker-compose.yml up
+#   http://localhost:8081
+name: cashflow-c4
+
+services:
+  structurizr:
+    image: structurizr/structurizr
+    command: local
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./:/usr/local/structurizr
+      - ../arquitetura:/usr/local/arquitetura
+      - ../adr:/usr/local/adr
+    depends_on:
+      - mermaid
+
+  # Gera os SVGs dos diagramas Mermaid sem enviar o conteúdo para fora da máquina.
+  # A URL (http://localhost:3000) é configurada em workspace.dsl -> views.properties.
+  mermaid:
+    image: ghcr.io/jihchi/mermaid.ink
+    ports:
+      - "3000:3000"
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      # A página de documentação pede todos os diagramas de uma vez; com os padrões
+      # (1 render por vez, 3 s de espera na fila) parte deles volta 503.
+      QUEUE_CONCURRENCY: "3"
+      QUEUE_ADD_TIMEOUT: "60000"

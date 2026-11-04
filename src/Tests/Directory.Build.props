@@ -1,0 +1,24 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../../'))" />
+  <PropertyGroup>
+    <IsLoadTest Condition="'$(MSBuildProjectName)' == 'CashFlow.LoadTest'">true</IsLoadTest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(IsLoadTest)' != 'true'">
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    <!-- Exemplos de contrato (docs/contratos) copiados como conteúdo: acoplamento por arquivo, não por compilação. -->
+    <ContractsDir>$(MSBuildThisFileDirectory)../../docs/contratos/exemplos/</ContractsDir>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(IsLoadTest)' != 'true'">
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="coverlet.MTP" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(IsLoadTest)' != 'true'">
+    <Using Include="Xunit" />
+    <Using Include="Shouldly" />
+  </ItemGroup>
+</Project>

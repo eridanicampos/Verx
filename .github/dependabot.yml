@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      microsoft:
+        patterns: ["Microsoft.*", "System.*"]
+      opentelemetry:
+        patterns: ["OpenTelemetry*", "Npgsql*"]
+      testing:
+        patterns: ["xunit*", "Shouldly", "NSubstitute", "Testcontainers*", "coverlet*"]
+  - package-ecosystem: docker
+    directories: ["/docker", "/src/Web/cashflow-web"]
+    schedule: { interval: weekly }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: terraform
+    directory: /infra/terraform/environments/prod
+    schedule: { interval: monthly }

@@ -1,0 +1,194 @@
+# CashFlow — ambiente local completo.
+# Pré-requisito: gerar segredos (nada sensível é versionado):
+#   ./scripts/generate-secrets.sh        (Linux/macOS/WSL)
+#   pwsh ./scripts/generate-secrets.ps1  (Windows)
+# Subir:      docker compose up -d --build
+# Observab.:  docker compose --profile observability up -d   (Jaeger em http://localhost:16686)
+
+name: cashflow
+
+x-app-hardening: &app-hardening
+  restart: unless-stopped
+  read_only: true
+  tmpfs: [/tmp]
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  networks: [backend]
+
+x-app-env: &app-env
+  ASPNETCORE_ENVIRONMENT: Production
+  Database__ApplyMigrationsOnStartup: "true"
+  Auth__Authority: http://identity:8080
+  Auth__RequireHttpsMetadata: "false"
+  OpenTelemetry__OtlpEndpoint: ${OTLP_ENDPOINT:-}
+
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_admin_password
+    secrets: [postgres_admin_password, pg_transactions_password, pg_consolidation_password, pg_identity_password]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/postgres/init-databases.sh:/docker-entrypoint-initdb.d/10-init-databases.sh:ro
+    command: ["postgres", "-c", "max_connections=300", "-c", "shared_buffers=256MB"]
+    ports: ["127.0.0.1:5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cashflow_identity"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [backend]
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 768M }
+
+  rabbitmq:
+    image: rabbitmq:4.1-management-alpine
+    restart: unless-stopped
+    hostname: rabbitmq
+    volumes:
+      - rabbitdata:/var/lib/rabbitmq
+      - ./secrets/infra/rabbitmq.conf:/etc/rabbitmq/conf.d/10-defaults.conf:ro
+    ports: ["127.0.0.1:5672:5672", "127.0.0.1:15672:15672"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
+    networks: [backend]
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 512M }
+
+  identity:
+    <<: *app-hardening
+    build: { context: ., dockerfile: docker/identity.Dockerfile }
+    image: cashflow/identity:local
+    environment:
+      <<: *app-env
+      Jwt__PublicBaseUrl: http://identity:8080
+    secrets:
+      - { source: id_connection_string, target: ConnectionStrings__Identity }
+      - { source: id_signing_key, target: Jwt__SigningKeyPem }
+      - { source: id_seed_operator, target: Identity__SeedUsers__0__Password }
+      - { source: id_seed_analyst, target: Identity__SeedUsers__1__Password }
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck: &app-health
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health/ready >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 30s
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256M }
+
+  transactions:
+    <<: *app-hardening
+    build: { context: ., dockerfile: docker/transactions.Dockerfile }
+    image: cashflow/transactions:local
+    environment:
+      <<: *app-env
+      RabbitMq__HostName: rabbitmq
+    secrets:
+      - { source: tx_connection_string, target: ConnectionStrings__Transactions }
+      - { source: tx_rabbitmq_password, target: RabbitMq__Password }
+      - { source: tx_pii_key, target: Pii__EncryptionKeys__k1 }
+      - { source: tx_pii_blind_index, target: Pii__BlindIndexKey }
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      identity: { condition: service_healthy }
+    healthcheck: *app-health
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 384M }
+
+  consolidation:
+    <<: *app-hardening
+    build: { context: ., dockerfile: docker/consolidation.Dockerfile }
+    image: cashflow/consolidation:local
+    environment:
+      <<: *app-env
+      RabbitMq__HostName: rabbitmq
+    secrets:
+      - { source: co_connection_string, target: ConnectionStrings__Consolidation }
+      - { source: co_rabbitmq_password, target: RabbitMq__Password }
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+      identity: { condition: service_healthy }
+    healthcheck: *app-health
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 384M }
+
+  gateway:
+    <<: *app-hardening
+    build: { context: ., dockerfile: docker/gateway.Dockerfile }
+    image: cashflow/gateway:local
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ReverseProxy__Clusters__identity__Destinations__d1__Address: http://identity:8080
+      ReverseProxy__Clusters__transactions__Destinations__d1__Address: http://transactions:8080
+      ReverseProxy__Clusters__consolidation__Destinations__d1__Address: http://consolidation:8080
+      Cors__AllowedOrigins__0: http://localhost:8080
+    ports: ["8000:8080"]
+    depends_on:
+      transactions: { condition: service_healthy }
+      consolidation: { condition: service_healthy }
+      identity: { condition: service_healthy }
+    healthcheck: *app-health
+    networks: [backend, frontend]
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 256M }
+
+  web:
+    build: { context: src/Web/cashflow-web }
+    image: cashflow/web:local
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+    ports: ["8080:8080"]
+    depends_on:
+      gateway: { condition: service_healthy }
+    networks: [frontend]
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    profiles: [observability]
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports: ["127.0.0.1:16686:16686"]
+    networks: [backend]
+
+networks:
+  backend: {}
+  frontend: {}
+
+volumes:
+  pgdata: {}
+  rabbitdata: {}
+
+secrets:
+  postgres_admin_password:   { file: ./secrets/infra/postgres_admin_password }
+  pg_transactions_password:  { file: ./secrets/infra/pg_transactions_password }
+  pg_consolidation_password: { file: ./secrets/infra/pg_consolidation_password }
+  pg_identity_password:      { file: ./secrets/infra/pg_identity_password }
+  id_connection_string:      { file: ./secrets/identity/ConnectionStrings__Identity }
+  id_signing_key:            { file: ./secrets/identity/Jwt__SigningKeyPem }
+  id_seed_operator:          { file: ./secrets/identity/Identity__SeedUsers__0__Password }
+  id_seed_analyst:           { file: ./secrets/identity/Identity__SeedUsers__1__Password }
+  tx_connection_string:      { file: ./secrets/transactions/ConnectionStrings__Transactions }
+  tx_rabbitmq_password:      { file: ./secrets/transactions/RabbitMq__Password }
+  tx_pii_key:                { file: ./secrets/transactions/Pii__EncryptionKeys__k1 }
+  tx_pii_blind_index:        { file: ./secrets/transactions/Pii__BlindIndexKey }
+  co_connection_string:      { file: ./secrets/consolidation/ConnectionStrings__Consolidation }
+  co_rabbitmq_password:      { file: ./secrets/consolidation/RabbitMq__Password }

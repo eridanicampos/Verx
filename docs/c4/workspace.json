@@ -1,0 +1,688 @@
+{
+  "configuration" : {
+    "scope" : "SoftwareSystem"
+  },
+  "description" : "Registro de lançamentos e posição consolidada de saldo — banco digital",
+  "documentation" : { },
+  "id" : 1,
+  "lastModifiedDate" : "2026-11-03T02:49:31Z",
+  "model" : {
+    "people" : [ {
+      "description" : "Registra créditos/débitos e abre contas.",
+      "id" : "1",
+      "name" : "Operador de Back-office",
+      "properties" : {
+        "structurizr.dsl.identifier" : "operador"
+      },
+      "relationships" : [ {
+        "description" : "Usa",
+        "destinationId" : "7",
+        "id" : "17",
+        "sourceId" : "1",
+        "tags" : "Relationship",
+        "technology" : "HTTPS"
+      }, {
+        "description" : "Usa",
+        "destinationId" : "6",
+        "id" : "18",
+        "linkedRelationshipId" : "17",
+        "sourceId" : "1",
+        "technology" : "HTTPS"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Consulta saldos consolidados e relatórios diários.",
+      "id" : "2",
+      "name" : "Analista / Gestor",
+      "properties" : {
+        "structurizr.dsl.identifier" : "analista"
+      },
+      "relationships" : [ {
+        "description" : "Usa",
+        "destinationId" : "7",
+        "id" : "19",
+        "sourceId" : "2",
+        "tags" : "Relationship",
+        "technology" : "HTTPS"
+      }, {
+        "description" : "Usa",
+        "destinationId" : "6",
+        "id" : "20",
+        "linkedRelationshipId" : "19",
+        "sourceId" : "2",
+        "technology" : "HTTPS"
+      } ],
+      "tags" : "Element,Person"
+    } ],
+    "softwareSystems" : [ {
+      "description" : "App/Internet Banking e integrações que originam movimentações.",
+      "documentation" : { },
+      "id" : "3",
+      "name" : "Canais Digitais do Banco",
+      "properties" : {
+        "structurizr.dsl.identifier" : "canais"
+      },
+      "relationships" : [ {
+        "description" : "Registra lançamentos / consulta saldo",
+        "destinationId" : "8",
+        "id" : "21",
+        "sourceId" : "3",
+        "tags" : "Relationship",
+        "technology" : "HTTPS + JWT"
+      }, {
+        "description" : "Registra lançamentos / consulta saldo",
+        "destinationId" : "6",
+        "id" : "22",
+        "linkedRelationshipId" : "21",
+        "sourceId" : "3",
+        "technology" : "HTTPS + JWT"
+      } ],
+      "tags" : "Element,Software System,Externo"
+    }, {
+      "description" : "Recebe logs, métricas e traces (OTLP).",
+      "documentation" : { },
+      "id" : "4",
+      "name" : "SIEM / Observabilidade Corporativa",
+      "properties" : {
+        "structurizr.dsl.identifier" : "siem"
+      },
+      "tags" : "Element,Software System,Externo"
+    }, {
+      "description" : "Consome posições consolidadas.",
+      "documentation" : { },
+      "id" : "5",
+      "name" : "Contabilidade / Relatórios Regulatórios",
+      "properties" : {
+        "structurizr.dsl.identifier" : "reguladores"
+      },
+      "relationships" : [ {
+        "description" : "Consulta consolidados",
+        "destinationId" : "8",
+        "id" : "36",
+        "sourceId" : "5",
+        "tags" : "Relationship",
+        "technology" : "HTTPS + JWT"
+      }, {
+        "description" : "Consulta consolidados",
+        "destinationId" : "6",
+        "id" : "37",
+        "linkedRelationshipId" : "36",
+        "sourceId" : "5",
+        "technology" : "HTTPS + JWT"
+      } ],
+      "tags" : "Element,Software System,Externo"
+    }, {
+      "containers" : [ {
+        "description" : "SPA de operação (HTML/JS) servida por Nginx; access token só em memória.",
+        "documentation" : { },
+        "id" : "7",
+        "name" : "Console Web",
+        "properties" : {
+          "structurizr.dsl.identifier" : "cashflow.web"
+        },
+        "relationships" : [ {
+          "description" : "Chamadas de API (same-origin)",
+          "destinationId" : "8",
+          "id" : "23",
+          "sourceId" : "7",
+          "tags" : "Relationship",
+          "technology" : "HTTPS"
+        } ],
+        "tags" : "Element,Container,Web",
+        "technology" : "Nginx + JavaScript"
+      }, {
+        "description" : "TLS, OWASP DRS 2.1, Bot Manager, rate limit por IP, geo-filtro.",
+        "documentation" : { },
+        "id" : "8",
+        "name" : "Front Door + WAF",
+        "properties" : {
+          "structurizr.dsl.identifier" : "cashflow.edge"
+        },
+        "relationships" : [ {
+          "description" : "Encaminha tráfego inspecionado",
+          "destinationId" : "9",
+          "id" : "24",
+          "sourceId" : "8",
+          "tags" : "Relationship",
+          "technology" : "HTTPS + X-Azure-FDID"
+        } ],
+        "tags" : "Element,Container,Infra",
+        "technology" : "Azure Front Door Premium"
+      }, {
+        "description" : "Roteamento, rate limiting por cliente, CORS, limites de payload, trava de origem.",
+        "documentation" : { },
+        "id" : "9",
+        "name" : "API Gateway",
+        "properties" : {
+          "structurizr.dsl.identifier" : "cashflow.gateway"
+        },
+        "relationships" : [ {
+          "description" : "/auth, /.well-known",
+          "destinationId" : "10",
+          "id" : "25",
+          "sourceId" : "9",
+          "tags" : "Relationship",
+          "technology" : "HTTP"
+        }, {
+          "description" : "/api/v1/accounts/**",
+          "destinationId" : "12",
+          "id" : "26",
+          "sourceId" : "9",
+          "tags" : "Relationship",
+          "technology" : "HTTP"
+        }, {
+          "description" : "/balance, /daily-balances",
+          "destinationId" : "15",
+          "id" : "27",
+          "sourceId" : "9",
+          "tags" : "Relationship",
+          "technology" : "HTTP"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "ASP.NET Core 10 + YARP"
+      }, {
+        "description" : "Autenticação, emissão de JWT RS256, refresh token rotativo, JWKS.",
+        "documentation" : { },
+        "id" : "10",
+        "name" : "Serviço de Identidade",
+        "properties" : {
+          "structurizr.dsl.identifier" : "cashflow.identity"
+        },
+        "relationships" : [ {
+          "description" : "Lê/escreve",
+          "destinationId" : "11",
+          "id" : "30",
+          "sourceId" : "10",
+          "tags" : "Relationship",
+          "technology" : "TCP/TLS"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "ASP.NET Core 10"
+      }, {
+        "description" : "Usuários (hash PBKDF2) e refresh tokens (hash SHA-256).",
+        "documentation" : { },
+        "id" : "11",
+        "name" : "Banco Identidade",
+        "properties" : {
+          "structurizr.dsl.identifier" : "cashflow.identityDb"
+        },
+        "tags" : "Element,Container,Database",
+        "technology" : "PostgreSQL 16+"
+      }, {
+        "description" : "Fonte da verdade: contas e lançamentos; invariante de saldo; Outbox.",
+        "documentation" : { },
+        "id" : "12",
+        "name" : "Serviço de Lançamentos",
+        "properties" : {
+          "structurizr.dsl.identifier" : "cashflow.transactions"
+        },
+        "relationships" : [ {
+          "description" : "Obtém JWKS (chave pública)",
+          "destinationId" : "10",
+          "id" : "28",
+          "sourceId" : "12",
+          "tags" : "Relationship",
+          "technology" : "HTTP"
+        }, {
+          "description" : "Lê/escreve (transação única: lançamento + outbox)",
+          "destinationId" : "13",
+          "id" : "31",
+          "sourceId" : "12",
+          "tags" : "Relationship",
+          "technology" : "TCP/TLS"
+        }, {
+          "description" : "Publica eventos (publisher confirms)",
+          "destinationId" : "14",
+          "id" : "32",
+          "sourceId" : "12",
+          "tags" : "Relationship",
+          "technology" : "AMQP"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "ASP.NET Core 10"
+      }, {
+        "description" : "Contas (PII criptografada), lançamentos append-only, outbox.",
+        "documentation" : { },
+        "id" : "13",
+        "name" : "Banco Lançamentos",
+        "properties" : {
+          "structurizr.dsl.identifier" : "cashflow.transactionsDb"
+        },
+        "tags" : "Element,Container,Database",
+        "technology" : "PostgreSQL 16+"
+      }, {
+        "description" : "Exchange topic, filas quorum, retry com TTL e DLQ.",
+        "documentation" : { },
+        "id" : "14",
+        "name" : "Broker de Eventos",
+        "properties" : {
+          "structurizr.dsl.identifier" : "cashflow.broker"
+        },
+        "relationships" : [ {
+          "description" : "Entrega eventos (ack manual)",
+          "destinationId" : "15",
+          "id" : "33",
+          "sourceId" : "14",
+          "tags" : "Relationship",
+          "technology" : "AMQP"
+        } ],
+        "tags" : "Element,Container,Queue",
+        "technology" : "RabbitMQ 4.1"
+      }, {
+        "description" : "Consome eventos (Inbox/idempotente), projeta saldos diários e responde saldo em qualquer instante.",
+        "documentation" : { },
+        "id" : "15",
+        "name" : "Serviço de Consolidado",
+        "properties" : {
+          "structurizr.dsl.identifier" : "cashflow.consolidation"
+        },
+        "relationships" : [ {
+          "description" : "Obtém JWKS (chave pública)",
+          "destinationId" : "10",
+          "id" : "29",
+          "sourceId" : "15",
+          "tags" : "Relationship",
+          "technology" : "HTTP"
+        }, {
+          "description" : "Inbox + projeção (transação única)",
+          "destinationId" : "16",
+          "id" : "34",
+          "sourceId" : "15",
+          "tags" : "Relationship",
+          "technology" : "TCP/TLS"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "ASP.NET Core 10"
+      }, {
+        "description" : "Inbox, lançamentos projetados e consolidados diários.",
+        "documentation" : { },
+        "id" : "16",
+        "name" : "Banco Consolidado",
+        "properties" : {
+          "structurizr.dsl.identifier" : "cashflow.consolidationDb"
+        },
+        "tags" : "Element,Container,Database",
+        "technology" : "PostgreSQL 16+"
+      } ],
+      "description" : "Registra movimentações financeiras e fornece a posição consolidada de saldo ao longo do tempo.",
+      "documentation" : {
+        "decisions" : [ {
+          "content" : "\n# ADR-0001 — Registrar decisões arquiteturais em ADRs versionados\n\n- **Status:** Aceito\n- **Data:** 2026-10-29\n\n## Contexto\nO sistema legado \"cresceu sem planejamento\" e o conhecimento das decisões se perdeu, o que dificulta a manutenção. O banco exige rastreabilidade de decisões técnicas (auditoria, comitês de arquitetura).\n\n## Decisão\nToda decisão com impacto estrutural (tecnologia, padrão, trade-off de qualidade) é registrada em `docs/adr` no formato Nygard e revisada no mesmo Pull Request que a implementa. Os ADRs são o artefato de \"Architecture Requirements/Decision Log\" do repositório de arquitetura TOGAF.\n\n## Alternativas consideradas\n- **Wiki/Confluence:** desacopla documentação do código, envelhece rápido e não passa por revisão de código.\n- **Sem registro formal:** é justamente o problema do legado.\n\n## Consequências\n- ➕ Histórico auditável e revisado junto do código; novos membros entendem o \"porquê\".\n- ➖ Disciplina adicional em cada mudança relevante.\n",
+          "date" : "2026-10-29T00:00:00Z",
+          "format" : "Markdown",
+          "id" : "1",
+          "status" : "accepted",
+          "title" : "ADR-0001 — Registrar decisões arquiteturais em ADRs versionados"
+        }, {
+          "content" : "\n# ADR-0010 — Runtime .NET 10 LTS\n\n- **Status:** Aceito (substitui a escolha anterior por .NET 8)\n- **Data:** 2026-10-29\n\n## Contexto\nUma versão anterior da solução usava .NET 8. Ciclo de vida oficial da Microsoft:\n\n| Versão | Tipo | Lançamento | Fim do suporte |\n|---|---|---|---|\n| .NET 8 | LTS | nov/2023 | **10/nov/2026** |\n| .NET 9 | STS | nov/2024 | 10/nov/2026 |\n| **.NET 10** | **LTS** | **nov/2025** | **nov/2028** |\n\nNa data desta decisão o .NET 8 está **a menos de duas semanas do fim do suporte**: depois disso não recebe correções de segurança — inaceitável para um sistema financeiro (e apontamento certo em auditoria/pentest).\n\n## Decisão\n- Todos os projetos usam **`net10.0`** (C# 14), SDK fixado em `global.json` (`10.0.100`, `rollForward: latestFeature`).\n- Imagens base `mcr.microsoft.com/dotnet/aspnet:10.0-alpine` (patches de segurança via rebuild; Dependabot monitora as tags).\n- Bibliotecas Microsoft na linha 10.0.x (EF Core 10, ASP.NET Core 10).\n- **Política de evolução:** adotar cada LTS em até 6 meses após o GA; nunca operar em versão a menos de 6 meses do fim do suporte. A próxima migração planejada é para o .NET 12 LTS (nov/2027), com janela até mai/2028.\n\n## Alternativas consideradas\n- **Manter .NET 8 com justificativa:** só seria defensável com plano de migração imediato; o custo de migrar (8 → 10) foi baixo (sem APIs removidas relevantes) e o risco de ficar sem patches é alto.\n- **.NET 9 (STS):** mesmo fim de suporte do .NET 8 — sem vantagem.\n\n## Benefícios técnicos observados\n- `Guid.CreateVersion7` (IDs ordenáveis por tempo, melhor localidade de índice) usado em todas as entidades.\n- Melhorias de performance do runtime/GC e do Kestrel; OpenAPI nativo (`Microsoft.AspNetCore.OpenApi`) para controllers e Minimal APIs.\n- `KnownIPNetworks` em `ForwardedHeadersOptions`, `TimeProvider`/`FakeTimeProvider` para testes determinísticos.\n\n## Consequências\n- ➕ Suporte de segurança até nov/2028.\n- ➖ Algumas bibliotecas de terceiros ainda sem build específico para 10 (nenhuma usada aqui).\n",
+          "date" : "2026-10-29T00:00:00Z",
+          "format" : "Markdown",
+          "id" : "10",
+          "status" : "accepted",
+          "title" : "ADR-0010 — Runtime .NET 10 LTS"
+        }, {
+          "content" : "\n# ADR-0011 — PostgreSQL como banco relacional\n\n- **Status:** Aceito\n- **Data:** 2026-10-29\n\n## Contexto\nDados financeiros exigem ACID, precisão decimal, constraints de unicidade (idempotência) e bom suporte a concorrência. Precisamos de recursos específicos: `FOR UPDATE SKIP LOCKED` (outbox com várias réplicas), `INSERT … ON CONFLICT` (projeção idempotente), índices parciais.\n\n## Decisão\n- **PostgreSQL 16+** (local 17, nuvem Azure Database for PostgreSQL Flexible Server 16), via EF Core 10 + Npgsql (licença PostgreSQL).\n- `numeric(18,2)` para valores; `timestamptz` em UTC; IDs UUIDv7.\n- **Database-per-service** com usuário próprio por serviço (menor privilégio). Migrations versionadas (EF Core); em produção executadas pelo pipeline com usuário DDL, não pela aplicação.\n- Produção: HA zona redundante, PITR de 35 dias, backup geo-redundante, TLS obrigatório, acesso apenas pela VNet.\n\n## Alternativas consideradas\n- **SQL Server / Azure SQL:** excelente com .NET; licenciamento e custo maiores; `READPAST`/`MERGE` cobrem os mesmos padrões. Viável se for padrão corporativo.\n- **NoSQL (Cosmos DB):** bom para leitura em escala, mas transações multi-documento e constraints de unicidade são mais limitadas para o lado transacional.\n\n## Consequências\n- ➕ Open source, portável, recursos de concorrência alinhados aos padrões adotados.\n- ➖ SQL específico de PostgreSQL no outbox/projeção (isolado na Infrastructure).\n",
+          "date" : "2026-10-29T00:00:00Z",
+          "format" : "Markdown",
+          "id" : "11",
+          "status" : "accepted",
+          "title" : "ADR-0011 — PostgreSQL como banco relacional"
+        }, {
+          "content" : "\n# ADR-0012 — Transactional Outbox no produtor e Inbox no consumidor\n\n- **Status:** Aceito\n- **Data:** 2026-10-29\n\n## Contexto\nO problema de *dual write*: gravar o lançamento no banco **e** publicar o evento no broker não é atômico. Se publicar antes do commit, o consumidor pode ver um evento de algo que não existiu (rollback); se depois, uma queda entre commit e publish perde o evento — o consolidado diverge para sempre.\n\n## Decisão\n### Produtor (Lançamentos) — Transactional Outbox\n1. O caso de uso grava `Account` (saldo), `Transaction` e uma linha em `outbox_messages` **no mesmo `SaveChanges`** (uma transação).\n2. O `OutboxProcessor` (BackgroundService) reserva lotes com `SELECT … FOR UPDATE SKIP LOCKED` (várias réplicas sem duplicar trabalho), publica com **publisher confirms** e marca `processed_at`.\n3. Falha de publicação → `attempts++`, backoff exponencial (2^n s, máx. 5 min). Após 20 tentativas a mensagem fica \"estacionada\" e o health check `outbox` reporta *Degraded* (alerta).\n4. Mensagens processadas são removidas após 7 dias (retenção configurável).\n5. `MessageId` AMQP = `EventId` (UUIDv7), propagado com `traceparent` (W3C) para rastreamento ponta a ponta.\n\n### Consumidor (Consolidado) — Inbox / Idempotent Consumer\n1. Ack manual **somente após o commit** da projeção.\n2. Na mesma transação: `INSERT INTO inbox_messages … ON CONFLICT DO NOTHING`; se já existia, é duplicata → ack sem efeito.\n3. Segunda barreira: `ledger_entries` tem PK = `TransactionId` (idempotência natural mesmo se o evento for republicado com outro `MessageId`).\n4. Falha transitória → republica na fila de retry (TTL) com `x-retry-count` e confirma a original **depois** do confirm do retry; esgotado → DLQ.\n\n### Idempotência na borda (API)\n`POST /transactions` exige header `Idempotency-Key`. Unicidade `(account_id, idempotency_key)` no banco; repetição com o mesmo payload retorna o resultado original (`200` + `Idempotency-Replayed: true`); com payload diferente retorna `409`. Corridas entre réplicas são resolvidas pela constraint.\n\n## Consequências\n- ➕ Garantia *at-least-once* fim a fim + efeito *exactly-once* na projeção.\n- ➕ Escrita continua disponível com o broker fora (testado: 600 lançamentos durante 18 s de indisponibilidade, 0 erro, convergência total).\n- ➖ Latência adicional de até `PollingInterval` (500 ms) para o evento sair; aceitável para consolidado. Evolução: LISTEN/NOTIFY ou CDC (Debezium) para reduzir.\n- ➖ Tabelas de controle (outbox/inbox) exigem limpeza periódica (implementada no outbox; inbox via job de retenção).\n- Testes: `OutboxTests` (atomicidade, broker fora, relays concorrentes), `MessagingTests` (duplicatas, DLQ), `IdempotencyTests` (rajada concorrente com a mesma chave).\n",
+          "date" : "2026-10-29T00:00:00Z",
+          "format" : "Markdown",
+          "id" : "12",
+          "status" : "accepted",
+          "title" : "ADR-0012 — Transactional Outbox no produtor e Inbox no consumidor"
+        }, {
+          "content" : "\n# ADR-0013 — Clean Architecture com CQRS, Repository e Unit of Work\n\n- **Status:** Aceito\n- **Data:** 2026-10-29\n\n## Contexto\nO legado é difícil de manter porque mistura regras de negócio com infraestrutura. Precisamos de testabilidade (regras sem banco nem broker), de liberdade para trocar tecnologia e de convenções claras sobre onde fica cada coisa. A escolha desta arquitetura — Clean Architecture com CQRS, Repository e Unit of Work — é minha.\n\n## Decisão\nCada serviço de negócio (Lançamentos e Consolidado) tem quatro projetos, agrupados na solução nas pastas abaixo:\n\n| Pasta da solução | Projeto | Contém |\n|---|---|---|\n| **1 - Presentation** | `src/API/*.Api` | `Controllers/` (um por recurso, herdando `ApiControllerBase`), `Configuration/` (`ApiConfig` com `AddApiConfig`/`UseApiConfig`, autenticação, rate limiting, observabilidade), `Middleware/`, `Contracts/` (requests HTTP) |\n| **2 - Application** | `src/Application/*.Application` | `Abstractions/Messaging/` (`ICommand`, `ICommandHandler`, `IQuery`, `IQueryHandler`), `Behaviors/ValidationBehavior`, `<Feature>/Commands/<CasoDeUso>/` e `<Feature>/Queries/<CasoDeUso>/` (comando ou consulta + handler + validador), `Contracts/<Feature>/` (DTOs de resposta), `Interfaces/`, `Configuration/DependencyInjectionConfig` |\n| **3 - Domain** | `src/Domain/*.Domain` | `Entities/Abstracts/Entity`, `Models/` (agregados e entidades), `Enums/`, `Errors/`, `Exceptions/`, `Helpers/` (`Result`, `Error`), `Interfaces/Repository/` e `Interfaces/Common/IUnitOfWork` |\n| **4 - Infra** | `src/Infrastructure/*.Infrastructure` | `Context/` (DbContext), `EntityConfiguration/` (`XxxMap`), `Repository/`, `UnitOfWork/`, `Migrations/`, `Health/`, `Configurations/DependencyInjectionConfig` (`AddInfrastructure`), mais `Messaging/`, `Outbox/` e `Security/` |\n| **5 - Tests** | `src/Tests/*` | Unitários, integração, contrato, gateway e `CashFlow.LoadTest` |\n\nDependências apontam para dentro: `Api → Application → Domain` e `Infrastructure → Application/Domain`. A Api referencia a Infrastructure apenas para compor a injeção de dependência.\n\nFluxo de uma escrita: `Controller → ICommandHandler (ValidationBehavior → XxxCommandHandler) → repositórios + IUnitOfWork.CommitAsync()`. Leituras: `Controller → IQueryHandler → repositório`.\n\n### Convenções\n- Camadas, nomes de pastas e agrupamento da solução (1 a 5).\n- Contratos `ICommand`/`ICommandHandler`/`IQuery`/`IQueryHandler` e o `ValidationBehavior` com FluentValidation aplicado somente a comandos.\n- Comandos e consultas como `sealed record`, com sufixos `Command`, `Query`, `CommandHandler`, `QueryHandler` e `CommandValidator`.\n- Interfaces de repositório e `IUnitOfWork` no Domain; implementações em `Repository/` e `UnitOfWork/` na Infrastructure; mapeamentos EF como `XxxMap : IEntityTypeConfiguration<T>`.\n- Controllers com `[Authorize]`, um por recurso, e DI por métodos de extensão (`AddApiConfig`, `AddApplication`, `AddInfrastructure`).\n\n### Escolhas de implementação, e por quê\n| Em vez de | Aqui | Motivo |\n|---|---|---|\n| MediatR 12 | Handlers resolvidos direto pela DI, com o `ValidationBehavior` como decorator | MediatR 13+ tem licença comercial ([ADR-0007](#7)); o contrato dos handlers é o mesmo |\n| `ResultWrapper<T>` e exceções tipadas convertidas em HTTP por middleware | `Result<T>`/`Error` mapeados para ProblemDetails (RFC 9457) no `ApiControllerBase` | Um único formato de resposta; exceções só para o que é excepcional (concorrência otimista, unicidade) |\n| `IUnitOfWork` expondo os repositórios como propriedades | Repositórios injetados no handler; o `IUnitOfWork` só confirma (`CommitAsync`) e descarta (`Reset`) | Dependências explícitas no construtor e testes sem service locator |\n| Camada de serviço (`IXxxService`) entre handler e repositório | Regras de negócio nos agregados (`Account.Register`) e orquestração no handler | O domínio é pequeno; a camada extra só repassaria chamadas |\n| `Entity` com auditoria e soft delete | `Entity` com `Id`; lançamentos são imutáveis e nunca apagados | Em livro-razão a correção é um novo lançamento, não uma exclusão lógica |\n| Mapster | Mapeamento explícito (`XxxResponse.From`) | Poucos DTOs; evita reflexão e mantém o mapeamento visível |\n\n## Alternativas consideradas\n- **MediatR, `ResultWrapper` e camada de serviço:** trariam a dependência de licença comercial e dois padrões de erro.\n- **Projeto único por serviço (só pastas):** menos projetos, mas o compilador não impede violações de camada.\n- **Minimal APIs:** usadas no Identity e no Gateway, que são serviços de suporte pequenos ([ADR-0008](#8)). Nos serviços de negócio ficamos com controllers.\n\n## Consequências\n- ➕ Comandos, consultas, repositórios e mapeamentos ficam sempre nos mesmos lugares, previsíveis para quem chega ao código.\n- ➕ Regras de domínio cobertas por testes unitários rápidos; trocar RabbitMQ ou PostgreSQL afeta só a Infrastructure.\n- ➖ Mais projetos e algum mapeamento explícito entre camadas.\n",
+          "date" : "2026-10-29T00:00:00Z",
+          "format" : "Markdown",
+          "id" : "13",
+          "status" : "accepted",
+          "title" : "ADR-0013 — Clean Architecture com CQRS, Repository e Unit of Work"
+        }, {
+          "content" : "\n# ADR-0014 — API Gateway (YARP) + Front Door/WAF como proteção de borda\n\n- **Status:** Aceito\n- **Data:** 2026-10-29\n\n## Contexto\nA avaliação anterior apontou ausência de proteção ativa contra ataques (rate limiting, WAF). A vaga cita gestão de APIs (ex.: Apigee). Precisamos de defesa em profundidade sem acoplar regras de borda aos serviços.\n\n## Decisão\nDefesa em camadas:\n\n| Camada | Controle |\n|---|---|\n| **Front Door Premium + WAF** (nuvem) | TLS 1.2+, OWASP **DRS 2.1**, **Bot Manager**, rate limit por IP (3.000/min), regra específica anti-força-bruta em `/auth/token` (50/5 min), geo-filtro (BR em prod), logs para Log Analytics |\n| **API Gateway — YARP** | Roteamento por rota, **rate limiting global por IP** (token bucket) e **política estrita em `/auth`**, limite de payload (64 KB) e de headers, CORS restrito, cabeçalhos de segurança, health checks passivos dos destinos, **rejeita tráfego sem `X-Azure-FDID`** do perfil (impede bypass do WAF) |\n| **Serviços** | JWT + escopos, rate limiting por cliente autenticado (`sub`), validação de entrada, limites do Kestrel |\n| **Identity** | Rate limit no login por IP + lockout por usuário |\n\nYARP (MIT, Microsoft) foi escolhido por ser .NET, leve, configurável por `appsettings`/variáveis e testável in-process.\n\n## Alternativas consideradas\n- **Apigee / Azure API Management:** recursos de produto de API (portal de desenvolvedor, monetização, chaves por consumidor, políticas declarativas). Recomendado quando houver **consumidores externos/parceiros**; o Gateway YARP pode ficar atrás do APIM sem mudanças nos serviços. Custo do APIM Standard v2 (~US$ 700/mês) não se justifica para consumo interno.\n- **Somente WAF, sem gateway:** perderia rate limiting por rota e não funcionaria localmente.\n- **Ocelot:** projeto com manutenção menos ativa que o YARP.\n\n## Consequências\n- ➕ Proteção ativa testada (`GatewayTests`: 429 com `Retry-After`, limite de auth, payload grande, bypass do Front Door).\n- ➕ Paridade local (YARP) e nuvem (Front Door + YARP).\n- ➖ Um salto de rede adicional (~1 ms).\n",
+          "date" : "2026-10-29T00:00:00Z",
+          "format" : "Markdown",
+          "id" : "14",
+          "status" : "accepted",
+          "title" : "ADR-0014 — API Gateway (YARP) + Front Door/WAF como proteção de borda"
+        }, {
+          "content" : "\n# ADR-0015 — Teste de carga próprio em modelo aberto (CashFlow.LoadTest)\n\n- **Status:** Aceito\n- **Data:** 2026-10-29\n\n## Contexto\nRequisito não funcional de volumetria adotado na avaliação: em dias de pico o serviço de consolidado recebe **50 requisições/s com no máximo 5% de perda**. Precisamos comprovar isso de forma automatizada e repetível no CI. NBomber exige licença comercial para uso organizacional; k6 é AGPL-3.0 (ADR-0007).\n\n## Decisão\nImplementar `src/Tests/CashFlow.LoadTest` (console .NET, sem dependências):\n- **Modelo aberto** (taxa de chegada constante): as requisições são disparadas no ritmo alvo independentemente da latência, evitando *coordinated omission* (que no modelo fechado mascara lentidão).\n- Cenários: `consolidated` (leituras), `transactions` (escritas), `mixed` (ambos simultâneos).\n- Métricas: total, RPS obtido, taxa de erro, p50/p95/p99/máx, distribuição por status HTTP.\n- **Critérios de aprovação** parametrizáveis (`--max-error-rate 0.05 --p95-ms 500`) → exit code ≠ 0 reprova o pipeline.\n- **Verificação de consistência**: ao final, compara o saldo consolidado com o transacional de cada conta (prova que não houve perda/duplicidade sob carga).\n- Relatório Markdown salvo como artefato do CI (`loadtest-results/`).\n\n## Resultados de referência\nVer [`docs/testes/estrategia-de-testes.md`](../testes/estrategia-de-testes.md#resultados-de-carga).\n\n## Consequências\n- ➕ Requisito comprovado a cada execução do pipeline, sem custo de licença.\n- ➖ Recursos avançados (rampas, distribuição de carga em vários agentes) teriam de ser implementados; para escala maior, Azure Load Testing (JMeter, Apache-2.0) é a evolução.\n",
+          "date" : "2026-10-29T00:00:00Z",
+          "format" : "Markdown",
+          "id" : "15",
+          "status" : "accepted",
+          "title" : "ADR-0015 — Teste de carga próprio em modelo aberto (CashFlow.LoadTest)"
+        }, {
+          "content" : "\n# ADR-0002 — Dois microsserviços de negócio com database-per-service\n\n- **Status:** Aceito\n- **Data:** 2026-10-29\n\n## Contexto\nO problema tem duas capacidades com perfis opostos:\n\n| | Lançamentos | Consolidado |\n|---|---|---|\n| Natureza | Escrita, transacional, fonte da verdade | Leitura intensiva, derivada |\n| Consistência | Forte (saldo não pode ficar inconsistente) | Eventual aceitável (com indicação de defasagem) |\n| Pico | Horário comercial | Fechamentos e relatórios |\n| Requisito crítico | Não pode parar se o consolidado cair | Suportar 50 req/s com ≤ 5% de perda |\n\nNo legado, ambos competem pelos mesmos recursos: relatórios pesados degradam o registro de movimentações em horário de pico.\n\n## Decisão\nSeparar em **dois serviços independentemente implantáveis e escaláveis** (Lançamentos e Consolidado), cada um com **seu próprio banco** (database-per-service) e comunicação **assíncrona por eventos**. Identidade e Gateway são serviços de suporte.\n\n- Lançamentos não chama o Consolidado de forma síncrona — falha do Consolidado não afeta o registro.\n- O Consolidado mantém uma **projeção própria** (CQRS entre serviços), otimizada para leitura temporal.\n- Em produção os bancos ficam no mesmo servidor PostgreSQL gerenciado (isolamento lógico por database e usuário) para reduzir custo; a separação física é uma mudança de connection string.\n\n## Alternativas consideradas\n1. **Monólito modular** (um deploy, dois módulos, um banco): mais simples e barato, mas não atende ao requisito de isolamento de falha e escala independente; o problema de contenção do legado persistiria. Seria a escolha para um time muito pequeno sem os requisitos de disponibilidade.\n2. **Mais microsserviços** (contas, lançamentos, relatórios, notificações…): granularidade excessiva para o domínio atual, aumenta custo operacional e risco de monólito distribuído.\n3. **Consolidado lendo o banco de Lançamentos** (réplica de leitura): acopla o modelo de dados e transfere a carga de relatório para o banco transacional.\n\n## Consequências\n- ➕ Isolamento de falhas e escala independente (o Consolidado escala por profundidade de fila via KEDA).\n- ➕ Cada serviço evolui seu modelo de dados sem coordenação.\n- ➖ Consistência eventual entre serviços (tratada no ADR-0006) e necessidade de Outbox/Inbox (ADR-0012).\n- ➖ Mais artefatos de operação (observabilidade distribuída com OpenTelemetry é obrigatória).\n- Para evitar **monólito distribuído**: sem chamadas síncronas entre serviços de negócio, sem código compartilhado em tempo de compilação (ADR-0004), deploy independente por serviço.\n",
+          "date" : "2026-10-29T00:00:00Z",
+          "format" : "Markdown",
+          "id" : "2",
+          "status" : "accepted",
+          "title" : "ADR-0002 — Dois microsserviços de negócio com database-per-service"
+        }, {
+          "content" : "\n# ADR-0003 — RabbitMQ como broker de eventos\n\n- **Status:** Aceito\n- **Data:** 2026-10-29\n\n## Contexto\nPrecisamos propagar eventos de lançamento para o Consolidado com: entrega garantida (at-least-once), tratamento de falhas com retry e DLQ, operação local idêntica à de produção (Docker Compose) e custo baixo para o volume previsto (dezenas de eventos/s, picos de centenas).\n\n## Decisão\nUsar **RabbitMQ 4.1** com:\n- Exchange `cashflow.transactions` (topic) de propriedade do produtor; routing key = tipo do evento versionado (`transaction.registered.v1`).\n- Fila **quorum** `consolidation.transactions` de propriedade do consumidor (replicação Raft, segura contra perda de nó).\n- **Publisher confirms** + `mandatory`: o Outbox só marca como publicado após confirmação do broker; mensagem sem rota retorna erro e é retentada.\n- **Retry com atraso** via fila de espera com TTL que devolve à fila principal; após `MaxRetries`, `nack(requeue=false)` → **DLX/DLQ** com header `x-death`.\n- Erros determinísticos (payload inválido, tipo desconhecido) vão **direto** para a DLQ.\n- Cliente oficial `RabbitMQ.Client` 7.x (Apache-2.0/MPL-2.0 dual), sem framework de terceiros.\n\nFase 1 em nuvem: nó único no Azure Container Apps com volume persistente (o Outbox torna uma indisponibilidade do broker não-fatal para escrita). **Alvo de produção:** cluster de 3 nós (operador RabbitMQ no AKS ou CloudAMQP dedicado) para quorum real.\n\n## Alternativas consideradas\n| Opção | Prós | Contras |\n|---|---|---|\n| **Azure Service Bus Premium** | Gerenciado, DLQ nativa, sessões | Sem emulação local fiel; ~US$ 680/mês por unidade de mensageria Premium; lock-in |\n| **Apache Kafka / Event Hubs** | Retenção e replay, altíssimo throughput | Superdimensionado para o volume; operação e custo maiores; DLQ não nativa |\n| **MassTransit** sobre RabbitMQ | Abstrações prontas (outbox, retry) | v9 passou a ter licença comercial — ver ADR-0007 |\n| **Somente banco (polling entre serviços)** | Sem broker | Acoplamento por banco, sem fan-out |\n\n## Consequências\n- ➕ Paridade local/produção, DLQ e retry explícitos e testados (`RetryAndDeadLetterTests`).\n- ➕ Portável entre nuvens.\n- ➖ Operação do broker é nossa responsabilidade (mitigado pelo plano de cluster gerenciado).\n- ➖ Sem replay de longo prazo: a reconstrução do consolidado usa o banco de Lançamentos como fonte (runbook em `docs/operacao`).\n",
+          "date" : "2026-10-29T00:00:00Z",
+          "format" : "Markdown",
+          "id" : "3",
+          "status" : "accepted",
+          "title" : "ADR-0003 — RabbitMQ como broker de eventos"
+        }, {
+          "content" : "\n# ADR-0004 — Contratos de eventos sem projeto compartilhado\n\n- **Status:** Aceito (substitui a abordagem com `CashFlow.Shared`)\n- **Data:** 2026-10-29\n\n## Contexto\nUma versão anterior da solução usava um projeto `CashFlow.Shared` referenciado por Lançamentos e Consolidado contendo DTOs de eventos e utilitários. Isso cria **acoplamento em tempo de compilação**: qualquer mudança em `Shared` exige recompilar e reimplantar ambos os serviços juntos — característica de **monólito distribuído**.\n\n## Decisão\n- **Não existe projeto compartilhado entre serviços.** Cada serviço tem seus próprios tipos.\n- O **produtor** é dono do contrato (`CashFlow.Transactions.Application/IntegrationEvents/*V1`), publicado como documentação em [`docs/contratos/asyncapi.yaml`](../contratos/asyncapi.yaml) com exemplos JSON em `docs/contratos/exemplos`.\n- O **consumidor** declara seu **modelo de leitura próprio** (`CashFlow.Consolidation.Application/Messages`) seguindo *tolerant reader* (ignora campos desconhecidos).\n- **Testes de contrato** dos dois lados validam contra os mesmos exemplos JSON (acoplamento por arquivo/esquema, não por assembly):\n  - Produtor: `ProducerContractTests` — o JSON serializado tem exatamente os campos do exemplo.\n  - Consumidor: `ConsumerContractTests` — o exemplo é desserializado e aceito pelas regras de validação.\n- Versionamento no nome do evento (`.v1`). Mudança incompatível = novo evento `.v2` publicado em paralelo até migração do consumidor.\n- Pequenas duplicações (ex.: `Result`, `SnakeCaseNamingExtensions`, conexão RabbitMQ) são **aceitas deliberadamente**: o custo de duplicar ~100 linhas é menor que o de acoplar ciclos de release.\n\n## Alternativas consideradas\n- **Pacote NuGet de contratos versionado:** melhor que referência de projeto, mas ainda propaga dependência binária e tende a virar \"Shared\" de novo. Pode ser reavaliado se surgirem muitos consumidores (gerar a partir do AsyncAPI).\n- **Schema Registry (Avro/Protobuf):** robusto, porém infraestrutura extra desproporcional para dois eventos.\n\n## Consequências\n- ➕ Deploy independente real; times podem evoluir em ritmos diferentes.\n- ➕ Quebra de contrato é detectada no CI antes do deploy.\n- ➖ Duplicação controlada de código utilitário.\n",
+          "date" : "2026-10-29T00:00:00Z",
+          "format" : "Markdown",
+          "id" : "4",
+          "status" : "accepted",
+          "title" : "ADR-0004 — Contratos de eventos sem projeto compartilhado"
+        }, {
+          "content" : "\n# ADR-0005 — JWT RS256 de curta duração + refresh token opaco rotativo\n\n- **Status:** Aceito\n- **Data:** 2026-10-29\n\n## Contexto\nPontos de atenção levantados na avaliação anterior: credenciais estáticas em texto puro, ausência de persistência de autenticação, falta de refresh tokens e de criptografia adequada. Em um banco, o vazamento de um token não pode conceder acesso prolongado, e os serviços não devem compartilhar segredo de assinatura.\n\n## Decisão\n- **Access token JWT assinado com RS256** (RSA 3072 bits), validade de **10 minutos**, claims mínimas (`sub`, `name`, `role`, `scope`, `jti`), `aud=cashflow-api`, `iss=cashflow-identity`.\n- **Apenas o Identity possui a chave privada.** Lançamentos e Consolidado validam pela chave pública obtida via discovery/JWKS (`/.well-known/openid-configuration`). Algoritmos aceitos restritos a RS256 (evita *alg confusion*), `ClockSkew` de 30 s.\n- **Autorização por escopo** (`transactions:write`, `transactions:read`, `balances:read`) com política *fallback* \"autenticado\" — endpoints novos nascem protegidos.\n- **Refresh token opaco** (256 bits aleatórios), **persistido só como hash SHA-256**, validade de 7 dias, **rotação a cada uso** e **detecção de reuso**: apresentar um token já rotacionado revoga toda a família (sessão) — padrão do OAuth 2.0 Security BCP.\n- Clientes web recebem o refresh token **somente** em cookie `HttpOnly; Secure; SameSite=Strict; Path=/auth`; o access token fica apenas em memória (mitiga XSS). Clientes de API recebem no corpo.\n- Senhas com **PBKDF2-HMAC-SHA512 (ASP.NET Core Identity PasswordHasher v3)**; lockout após 5 falhas por 15 min; resposta idêntica para usuário inexistente e senha errada (anti-enumeração, inclusive em tempo de resposta).\n- Logout (`/auth/revoke`) revoga a cadeia inteira.\n- Chave de assinatura fornecida por segredo (Docker secret local; Key Vault em nuvem). Rotação: publicar nova chave no JWKS antes de passar a assinar com ela (o `kid` é o thumbprint RFC 7638).\n\n## Alternativas consideradas\n- **HS256 com segredo compartilhado:** qualquer serviço comprometido poderia emitir tokens; rotação exige redeploy coordenado.\n- **Sessão stateful/cookie de sessão:** acopla APIs a um store de sessão; não atende bem clientes de API.\n- **Entra ID / Keycloak:** recomendado para produção corporativa (SSO, MFA, federação) — ver ADR-0008; o desenho dos serviços (validação via OIDC discovery) permite a troca apenas por configuração.\n\n## Consequências\n- ➕ Vazamento de access token tem janela máxima de 10 min; roubo de refresh token é detectável.\n- ➕ Nenhum segredo de assinatura fora do Identity.\n- ➖ Revogação imediata de access tokens não é possível sem introspecção (aceito pela curta duração; lista de `jti` revogados é evolução possível).\n- Testes: `CashFlow.Identity.Tests` (rotação, reuso, lockout, cookie endurecido, JWKS) e `AuthorizationTests` (401/403, expirado, audiência errada, chave desconhecida).\n",
+          "date" : "2026-10-29T00:00:00Z",
+          "format" : "Markdown",
+          "id" : "5",
+          "status" : "accepted",
+          "title" : "ADR-0005 — JWT RS256 de curta duração + refresh token opaco rotativo"
+        }, {
+          "content" : "\n# ADR-0006 — Consistência eventual no consolidado com projeção comutativa\n\n- **Status:** Aceito\n- **Data:** 2026-10-29\n\n## Contexto\nA posição consolidada é derivada dos lançamentos. Exigir consistência forte entre os serviços (2PC/saga síncrona) acoplaria a disponibilidade de Lançamentos à do Consolidado. O broker entrega *at-least-once* e não garante ordem entre consumidores concorrentes.\n\n## Decisão\n1. **Fonte da verdade:** o serviço de Lançamentos mantém o saldo transacional com consistência forte (concorrência otimista no agregado `Account`, com retentativas limitadas). `GET /api/v1/accounts/{id}` retorna esse saldo.\n2. **Consolidado eventualmente consistente**, com a defasagem **explícita** na resposta (`lastEntryAt`, `consistency: \"eventual\"`). Em condições normais a convergência medida é < 1 s; com o broker fora por 18 s, convergiu em ~17 s após o retorno, sem perda.\n3. **Projeção comutativa e idempotente:**\n   - Cada lançamento vira uma `LedgerEntry` com chave = `TransactionId` (reaplicar não altera nada).\n   - O consolidado diário é atualizado com `INSERT … ON CONFLICT DO UPDATE SET total = total + EXCLUDED.total` — **soma atômica**, sem read-modify-write, segura com N consumidores.\n   - Como somas comutam, eventos **fora de ordem** produzem o mesmo resultado; dispensa ordenação global e permite consumidores paralelos.\n4. **Saldo em um instante T** = Σ consolidados diários anteriores ao dia de T + Σ lançamentos do dia de T até T. Custo proporcional a (dias de histórico) + (lançamentos do dia), não ao histórico completo.\n5. **Data contábil em UTC** (`BusinessCalendar`). O cliente converte para America/Sao_Paulo na apresentação. Se o negócio exigir fechamento no fuso local, a mudança fica isolada em `BusinessCalendar` + reprocessamento da projeção.\n\n## Alternativas consideradas\n- **Calcular saldo sob demanda no banco transacional:** simples, mas leva a carga de relatório para o caminho crítico de escrita (problema do legado).\n- **Saldo corrente com \"running balance\" por lançamento:** exige ordem estrita por conta; quebra com eventos fora de ordem.\n- **Event sourcing completo:** poderoso para auditoria/replay, mas complexidade desproporcional ao escopo.\n\n## Consequências\n- ➕ Lançamentos disponíveis mesmo com Consolidado/broker indisponíveis.\n- ➕ Consumidores escalam horizontalmente sem coordenação.\n- ➖ Leituras do consolidado podem estar defasadas por segundos; clientes que precisam do valor exato e imediato usam o saldo transacional.\n- Testes: `Out_of_order_events_yield_same_result`, `Concurrent_projections_on_same_account_do_not_lose_updates`, verificação de convergência no `CashFlow.LoadTest`.\n",
+          "date" : "2026-10-29T00:00:00Z",
+          "format" : "Markdown",
+          "id" : "6",
+          "status" : "accepted",
+          "title" : "ADR-0006 — Consistência eventual no consolidado com projeção comutativa"
+        }, {
+          "content" : "\n# ADR-0007 — Somente bibliotecas com licença permissiva; versões fixadas\n\n- **Status:** Aceito\n- **Data:** 2026-10-29\n\n## Contexto\nEm 2025 várias bibliotecas populares do ecossistema .NET passaram a ter licença comercial em versões novas (MediatR 13+, AutoMapper 15+, MassTransit 9+, FluentAssertions 8+). Ferramentas como NBomber exigem licença para uso organizacional e k6 é AGPL-3.0. Uma dependência com licença inadequada é risco jurídico para o banco, e atualização automática pode \"trocar\" a licença sem ninguém perceber.\n\n## Decisão\n- **Allowlist de licenças:** MIT, Apache-2.0, BSD-2/3-Clause, PostgreSQL, ISC, MS-PL. Licenças duplas são aceitas se uma opção for permitida (ex.: RabbitMQ.Client `Apache-2.0 OR MPL-2.0` — usamos sob Apache-2.0).\n- **Substituições:**\n\n| Necessidade | Evitado (licença) | Adotado |\n|---|---|---|\n| Mediator/CQRS | MediatR 13+ (comercial) | Interfaces `ICommandHandler`/`IQueryHandler` próprias + DI |\n| Mapeamento | AutoMapper 15+ (comercial) | Métodos `From(...)` explícitos |\n| Mensageria | MassTransit 9+ (comercial) | `RabbitMQ.Client` + Outbox/Inbox próprios |\n| Asserções | FluentAssertions 8+ (comercial) | Shouldly (BSD-3) |\n| Carga | NBomber (licença org.), k6 (AGPL) | `CashFlow.LoadTest` próprio (ADR-0015) |\n| Testes | — | xUnit v3 (Apache-2.0), NSubstitute (BSD-3), Testcontainers (MIT) |\n\n- **Fixação de versões:** Central Package Management (`Directory.Packages.props`) com versões exatas, `CentralPackageTransitivePinningEnabled` e **lock files** (`packages.lock.json`) com restore em modo travado no CI e no Docker.\n- **Vulnerabilidades:** `NuGetAudit` em modo `all` (inclui **transitivas**, inclusive nos projetos de teste) com `TreatWarningsAsErrors` — uma CVE conhecida quebra o build. O CI ainda roda `dotnet list package --vulnerable --include-transitive`.\n- **Verificação automatizada:** `scripts/check-licenses.py` lê todos os lock files e falha o CI se houver licença fora da allowlist. Inventário gerado em [`docs/governanca/inventario-licencas.md`](../governanca/inventario-licencas.md) (133 pacotes, 100% permissivos).\n- Dependabot agrupa atualizações; toda atualização passa pelo verificador de licenças.\n\n## Consequências\n- ➕ Zero risco de licença comercial inadvertida; supply chain auditável.\n- ➖ Algum código de infraestrutura próprio (mediator simples, outbox) — pequeno e coberto por testes.\n",
+          "date" : "2026-10-29T00:00:00Z",
+          "format" : "Markdown",
+          "id" : "7",
+          "status" : "accepted",
+          "title" : "ADR-0007 — Somente bibliotecas com licença permissiva; versões fixadas"
+        }, {
+          "content" : "\n# ADR-0008 — Serviço de identidade próprio e substituível\n\n- **Status:** Aceito (com plano de substituição)\n- **Data:** 2026-10-29\n\n## Contexto\nO case precisa ser executável localmente e demonstrar mecanismos de autenticação (refresh token, rotação, lockout). Em produção, um banco tipicamente centraliza identidade em um IdP corporativo (Entra ID, Keycloak, Okta) com MFA e SSO.\n\n## Decisão\n- Implementar um **Identity mínimo** (`CashFlow.Identity.Api`) que segue os padrões OIDC necessários aos consumidores: discovery, JWKS, JWT RS256, escopos.\n- Por ser um **subdomínio de suporte pequeno**, fica em **um único projeto com pastas por camada** (Domain/Application/Infrastructure/Endpoints), em vez de 4 projetos — a separação física traria custo sem benefício proporcional.\n- Os serviços de negócio dependem apenas de **configuração OIDC** (`Auth:Authority`, `Issuer`, `Audience`). Trocar pelo Entra ID/Keycloak = mudar configuração e mapear escopos/roles; nenhum código de negócio muda.\n\n## Alternativas consideradas\n- **Keycloak no compose:** realista, porém pesado (Java, ~1 GB RAM) e desvia o foco da avaliação.\n- **Duende IdentityServer:** licença comercial para receita acima do limite community — viola ADR-0007.\n- **OpenIddict (Apache-2.0):** boa opção se for necessário suportar OAuth2 completo (client credentials, authorization code + PKCE); candidato natural de evolução.\n\n## Consequências\n- ➕ Executa localmente com poucos recursos; demonstra os controles exigidos.\n- ➖ Não implementa MFA, federação nem fluxos OAuth2 completos — **não deve ir a produção sem a substituição planejada** (roadmap em `docs/arquitetura/08-oportunidades-e-migracao.md`).\n",
+          "date" : "2026-10-29T00:00:00Z",
+          "format" : "Markdown",
+          "id" : "8",
+          "status" : "accepted",
+          "title" : "ADR-0008 — Serviço de identidade próprio e substituível"
+        }, {
+          "content" : "\n# ADR-0009 — Azure Container Apps como plataforma de execução\n\n- **Status:** Aceito\n- **Data:** 2026-10-29\n\n## Contexto\nCinco containers stateless (+ broker) com necessidade de autoscaling (HTTP e profundidade de fila), revisões para deploy seguro, rede privada e baixo esforço operacional. Ecossistema Microsoft (.NET, Azure DevOps) é o padrão da vaga/cliente.\n\n## Decisão\nExecutar em **Azure Container Apps (perfil Consumption)** dentro de VNet própria, com:\n- Identidade gerenciada por serviço (AcrPull + Key Vault Secrets User — menor privilégio).\n- Segredos referenciados do **Key Vault** (sem valores no app).\n- Ingress externo apenas para Gateway e Web, ambos protegidos pelo Front Door (validação `X-Azure-FDID`); demais apps com ingress interno.\n- Escala: HTTP concurrency para APIs; **KEDA rabbitmq** (profundidade de fila) para o Consolidado; mínimo de 2 réplicas em produção (zona redundante).\n- Probes de liveness/readiness nos endpoints `/health/live` e `/health/ready`.\n\nIaC em [`infra/terraform`](../../infra/terraform) (módulos reutilizáveis + ambientes `dev`/`prod`).\n\n## Alternativas consideradas\n| Opção | Por que não agora |\n|---|---|\n| **AKS** | Controle total e operador RabbitMQ, mas exige equipe de plataforma (upgrades, nós, políticas). Recomendado se a organização já opera AKS. |\n| **App Service** | Simples, porém sem KEDA por fila e escala menos granular por serviço. |\n| **VMs** | Maior custo operacional e menor elasticidade. |\n\n## Consequências\n- ➕ Custo proporcional ao uso (dev escala a zero), operação mínima, autoscaling nativo por fila.\n- ➖ Menos controle de rede/host que AKS; RabbitMQ em cluster é mais simples fora do ACA (ver ADR-0003).\n",
+          "date" : "2026-10-29T00:00:00Z",
+          "format" : "Markdown",
+          "id" : "9",
+          "status" : "accepted",
+          "title" : "ADR-0009 — Azure Container Apps como plataforma de execução"
+        } ],
+        "sections" : [ {
+          "content" : "# 1. Visão Arquitetural (TOGAF ADM — Fase A)\n\n## 1.1 Contexto do problema\nO banco digital possui um sistema interno legado que registra movimentações financeiras (créditos e débitos) e fornece, sob demanda, a posição consolidada de saldo dos clientes. O sistema apresenta **lentidão e instabilidade em horários de pico** e **dificuldade de manutenção**. A solução deve ser repensada do zero para operar de forma confiável em ambiente financeiro real.\n\n## 1.2 Stakeholders e preocupações\n\n| Stakeholder | Preocupação principal | Como a arquitetura responde |\n|---|---|---|\n| Diretoria de Operações | Disponibilidade no pico, sem perda de lançamentos | Serviços isolados, Outbox, escala automática |\n| Clientes do banco | Saldo correto, dados protegidos | Invariante de saldo com concorrência otimista; PII cifrada |\n| Segurança da Informação | Credenciais, ataques, LGPD | Key Vault/secrets, JWT RS256, WAF, rate limiting, criptografia de campo |\n| Compliance / Auditoria | Rastreabilidade, retenção | Lançamentos imutáveis, ADRs, logs estruturados com trace |\n| Engenharia | Manutenibilidade, testabilidade | Clean Architecture, 117 testes, CI com quality gates |\n| Finanças (FinOps) | Custo previsível | Modelo de custos versionado, orçamentos e tags no IaC |\n\n## 1.3 Direcionadores de negócio e objetivos\n\n| Objetivo | Métrica (SLO proposto) |\n|---|---|\n| Registrar lançamentos sem depender do consolidado | Disponibilidade de Lançamentos ≥ 99,95% mensal |\n| Consultar saldo consolidado em pico | 50 req/s com ≤ 5% de perda; p95 < 200 ms |\n| Consistência entre transacional e consolidado | Convergência p99 < 5 s em operação normal; 0 divergência após convergência |\n| Nenhuma perda de lançamento sob falha parcial | RPO = 0 para lançamentos confirmados (commit síncrono + HA do banco) |\n| Recuperação | RTO < 15 min (failover automático do banco ≈ 1–2 min) |\n\n## 1.4 Escopo\n**Dentro:** abertura de conta (mínimo necessário), registro de crédito/débito, extrato, saldo transacional, saldo consolidado em qualquer instante, relatório de consolidado diário, autenticação/autorização, operação local e IaC de nuvem.\n\n**Fora (roadmap):** estornos com workflow de aprovação, transferências entre contas (saga), multi-moeda, integração com core bancário/SPI, MFA/SSO corporativo.\n\n## 1.5 Princípios de arquitetura\n\n| # | Princípio | Implicação |\n|---|---|---|\n| P1 | **Dados financeiros nunca se perdem nem se duplicam** | Outbox/Inbox, idempotência em todas as escritas, lançamentos append-only |\n| P2 | **Falhas parciais não se propagam** | Comunicação assíncrona entre serviços de negócio; health checks degradam em vez de derrubar |\n| P3 | **Segurança por padrão** | Endpoints protegidos por política fallback; segredos fora do código; menor privilégio |\n| P4 | **Serviços autônomos** | Database-per-service; sem projeto compartilhado; deploy independente |\n| P5 | **Decisões registradas** | Toda decisão estrutural tem ADR |\n| P6 | **Automatizar a verificação** | Build sem warnings, testes, licenças, vulnerabilidades e carga no CI |\n| P7 | **Custo é requisito** | Estimativa versionada, orçamento e tags no IaC |\n\n## 1.6 Requisitos\n\n### Funcionais\n| ID | Requisito |\n|---|---|\n| RF01 | Registrar crédito em uma conta |\n| RF02 | Registrar débito respeitando saldo + limite |\n| RF03 | Consultar saldo transacional atual da conta |\n| RF04 | Consultar posição consolidada em um instante arbitrário (`?at=`) |\n| RF05 | Relatório de consolidado diário (créditos, débitos, líquido, saldo de fechamento) |\n| RF06 | Extrato de lançamentos por período |\n| RF07 | Autenticar usuários e autorizar por perfil (operador × analista) |\n\n### Não funcionais\n| ID | Atributo | Requisito |\n|---|---|---|\n| RNF01 | Disponibilidade | Lançamentos não pode depender do Consolidado |\n| RNF02 | Desempenho | Consolidado: 50 req/s, ≤ 5% de perda |\n| RNF03 | Consistência | Saldo transacional fortemente consistente; consolidado eventual e explícito |\n| RNF04 | Idempotência | Reenvio de requisição/evento não gera efeito duplicado |\n| RNF05 | Segurança | Sem credenciais em texto puro; tokens de curta duração; proteção ativa (rate limit/WAF); PII cifrada |\n| RNF06 | Observabilidade | Logs estruturados JSON, traces distribuídos (W3C), métricas de outbox/consumidor |\n| RNF07 | Manutenibilidade | Clean Architecture, cobertura de testes > 85% nas camadas de negócio |\n| RNF08 | Portabilidade | Executável localmente com um comando (`docker compose up`) |\n| RNF09 | Conformidade | LGPD (minimização, criptografia), residência de dados no Brasil |\n\n## 1.7 Restrições e premissas\n- C#/.NET obrigatório; código público no GitHub; build sem erros **e sem warnings**.\n- Premissa: moeda única BRL; volume inicial de ~16 M lançamentos/mês; nuvem Azure (ecossistema Microsoft do cliente).\n\n## 1.8 Visão da solução\nVer [C4 Contexto](../c4/c4-contexto.md) e [C4 Containers](../c4/c4-containers.md). Em resumo: **Console Web → Front Door/WAF → API Gateway → {Identidade, Lançamentos, Consolidado}**, com Lançamentos publicando eventos via Outbox no RabbitMQ e o Consolidado projetando saldos de forma idempotente.\n",
+          "filename" : "01-visao-arquitetural.md",
+          "format" : "Markdown",
+          "order" : 1,
+          "title" : ""
+        }, {
+          "content" : "# 2. Arquitetura de Negócio (TOGAF ADM — Fase B)\n\n## 2.1 Mapa de capacidades\n\n![](http://localhost:3000/svg/pako:eJx1Us1KAzEQfpUhB1GweC9S2G61CIJCe9t6mE2mbWA3qZOsCqUPIx5Kn8C7-2Imu7VsF8xphi_z_SSzBSGtIjEUy8K-yzWyh_l4YSAcV-Urxs0aUsuULUSKG5RaoSIHkoxn1A4uZQBB2RK1uVqIl3Y0niSbkvP1lwVF8Iim3mMZpqy7zflmJLk-KO0t_HyDqg_5saSPQOtth2acPVun630kSq1xtogWsCFxWCgLVMI8zsoTGiR1_cn6j4eM6kWaVRvLvp8qGHUtcJYk7SYJHjy2GTAn9hVjFC90qT3FKi_sa0W6m2GSPagQvVEBgkSSc_97m5Ih1hJdz92KTH1ogDN3d9lT7ojfMNfFSaGKb8saO_fuuylmtGJS1vVNJDAYjOC4AGnTJG0zaRu4iKi4BlESh09XYrgVfk1l3CFFS6wKL3a7X7T4zKE=)\n\n## 2.2 Contextos delimitados (DDD) e mapa de contexto\n\n| Contexto | Tipo | Modelo | Serviço |\n|---|---|---|---|\n| **Lançamentos** | Core | Agregado `Account` (saldo, limite, versão) + `Transaction` imutável | CashFlow.Transactions |\n| **Consolidação** | Core (leitura) | `LedgerEntry`, `DailyBalance`, `ConsolidatedAccount` | CashFlow.Consolidation |\n| **Identidade** | Suporte | `User`, `RefreshToken`, papéis/escopos | CashFlow.Identity |\n\nRelação: **Lançamentos (upstream) → Consolidação (downstream)** no padrão *Published Language* (eventos versionados documentados em AsyncAPI). A Consolidação não conhece dados pessoais — apenas `AccountId`.\n\n## 2.3 Linguagem ubíqua\n\n| Termo | Definição |\n|---|---|\n| **Lançamento** | Movimentação financeira imutável (crédito ou débito) em uma conta. Correções são novos lançamentos (estorno), nunca alteração. |\n| **Crédito / Débito** | Entrada / saída de valor. Valores sempre positivos; o tipo define o sinal. |\n| **Saldo transacional** | Saldo corrente mantido pelo agregado `Account`; fonte da verdade. |\n| **Limite (cheque especial)** | Valor que o saldo pode ficar negativo. Débito que ultrapasse `-limite` é rejeitado. |\n| **Posição consolidada** | Saldo calculado pela Consolidação para um instante T a partir dos lançamentos projetados. |\n| **Consolidado diário** | Totais de créditos e débitos de uma conta em uma data contábil (UTC) e o saldo de fechamento acumulado. |\n| **Chave de idempotência** | Identificador fornecido pelo cliente por intenção de lançamento; repetir a chave não repete o efeito. |\n| **Defasagem** | Diferença temporal entre o último lançamento efetivado e o último consolidado (`lastEntryAt`). |\n\n## 2.4 Regras de negócio\n\n| ID | Regra | Onde é garantida |\n|---|---|---|\n| RN01 | Valor > 0, máximo 2 casas decimais, até R$ 10.000.000,00 por lançamento | `RegisterTransactionValidator` |\n| RN02 | Débito não pode levar o saldo abaixo de `-limite` | `Account.Register` (sob concorrência otimista) |\n| RN03 | Conta bloqueada não movimenta | `Account.Register` |\n| RN04 | Mesma chave + mesmo conteúdo → mesmo resultado; mesma chave + conteúdo diferente → conflito | `RegisterTransactionCommandHandler` + unique index |\n| RN05 | Um documento (CPF/CNPJ) possui uma única conta | Blind index HMAC único |\n| RN06 | Lançamentos são imutáveis | Ausência de endpoints de alteração; tabela append-only |\n\n## 2.5 Processos principais\n\n### Registrar lançamento\n![](http://localhost:3000/svg/pako:eJx9lM9u00AQxl9lZC6uaJsW0UONqESdNApx4vwx4lIJTbzTZOl61-yu00ZRJF6FC0hceYS8CU_COnYhaSJ8sOyZbz9989u1l-ClipEXeIa-FCRTanKcasxuJbgLC6tkkU1I1--pVRpCQAMhShTQgDgnjUzVghy15SnPUVpol7I2WnrAxX43KrsRyvUPzEhaZfYlzetS4-7_l8WDUhYXdqIeYaBVSsYcytMblroRTibc9ob7_TDezKWkUYIzN9MByd9IO7JKGJ5cXbUDGMTjBBqYpqqQ1jSWnK0aVqM0Dh53q8B__zE5hg6jLFfWIV-cdGlxVHm0nUcUgKtixuUMwdcOIAiecQvqvlZFTtW8DmBSmBQhneGcgBHwynL9U6Yc6w0Ttu5_Xn-DwiCrG5WN8wkDeHV2Bi93Ao0oF7ggFoDVBYGvCnh9dgmGHI2FUMiA8TvSVOch4TpSzXe8q4jXrXan_-Li8g18GDTfJS2owYA_J20cj6NNs9Mft0YJbHHaLqvN3m4qYdzrdZJDM5xDqMnBYuAbFEwB5utf5imhZNWDUCoHx8yBgAs3d2b-ecWDOvS4FbXCBH5__Q438egp-bjbGUAUh91W89ma3jCAvJgIbmbgp0recZ0dHfDNq8NJ7BNaeOuIPfjP8_WG5TxxsI3iVNOUG-t4s9P5eX3Y4lK3S7imxWX5IcR9p-nfRJ0w2W4KYlPS9YZsKgy5WOyx3fiXc2F6fyu9Y_Ay0hly5gVLz84oK_8ZjO6wENZbrf4AIBRXhA==)\n\n### Consultar posição consolidada\n`GET /api/v1/accounts/{id}/balance?at=2026-10-29T15:00:00Z` → soma dos consolidados diários anteriores + lançamentos do dia até T. Resposta inclui `lastEntryAt` para o cliente avaliar a defasagem.\n",
+          "filename" : "02-arquitetura-de-negocio.md",
+          "format" : "Markdown",
+          "order" : 2,
+          "title" : ""
+        }, {
+          "content" : "# 3. Arquitetura de Dados (TOGAF ADM — Fase C, Dados)\n\n## 3.1 Propriedade dos dados\nCada serviço é dono exclusivo do seu banco (**database-per-service**) e do seu usuário de banco. Nenhum serviço lê o banco de outro.\n\n| Banco | Dono | Entidades | Classificação |\n|---|---|---|---|\n| `cashflow_transactions` | Lançamentos | accounts, transactions, outbox_messages | **Confidencial** (contém PII) |\n| `cashflow_consolidation` | Consolidado | inbox_messages, ledger_entries, daily_balances, accounts | Interno (sem PII) |\n| `cashflow_identity` | Identidade | users, refresh_tokens | **Restrito** (credenciais em hash) |\n\n## 3.2 Modelo — Lançamentos (schema `transactions`)\n\n![](http://localhost:3000/svg/pako:eJyNVO1O20AQfJWVf1GJoEJbiiJRyTUpRJCE4kTwA8na3C3JFfvOXZ8j0oQX6mv0xbomAZJgEJYl2zf7MTuz8gwC5TQFzYD4yOCIMbu2IFcYRb1Btx_DfN5ouBn0L8JuHEb9dq8bQxNyVxSl2QidLb6rqyyNBrnPT-E6GAzaR5Ov18EzPEFWY2QYu1QTJxYzehXUTpUZWS-Fwlbc2Puy3ziOOk24pWlbN4dY0P7nLeusornH0VyZfEz84Y1ujwWTMRZjGFQMTzph1IhPQikOW8PUWCFvNd2tlbGSxUbBEFOUbpK2e7C9VxfhJsSa8cYnqcmMr4l8pFR49GXxfD40IyOjSn5hnJVE727JgiZQMqFj_vfXKoPgvBSW5NWackRylOX-Dygm9KQT9Av8fvFYc_H9dj3AqJQrRTV5_XH6chI_zStJIiYtE8_hiIbG14mDWVVmqQl8g491umgqFJvciwgvQaMpy50nq6aJbEFF-RS2nvltb0bUbgPT71L0Sm6MHRHnbB5IyRJUKwbaQY7T1KF-YwUSsZi43gGnVMn8YIGUbV-tE1xBn8gtPeoN-t97V0mnFcfhcet1mw6BJrLFbQ2HEHZ-noP0LnBEDaPrxl364xltgaoSdodpJDtEQmNnsrua86twdvg0_7sWbBO3dOcF9OKDfzUoZ6eE9IpIubA1mMLlSeuitY63Y-gOzs5WeVaWLXsULydOUdwlZsc1ajCKfdJt8WO5_BStuBBsQyA-Z2h00JwFfkxZ9YfUdINl6oP7-_8m9KV7)\n\n## 3.3 Modelo — Consolidado (schema `consolidation`)\n\n![](http://localhost:3000/svg/pako:eJyNU-1qwjAUfZWQXxtTNvzpflUtInM6_AAHQrgmmWbYpKQ3A6c-kHsNX2ypRfuhg91Cm-ac3HvOve2WUG6EpE0qbUfB0kI018RH0G4Pp4PJmOx29brZkn7Y6YYjFg4mo144Jk0yp_66Se0Evf47awX9YNCuUHuD1nDGXsPxOOh6aJvtpuGcEiSSSQJLyfzy7SXHvsDyFdgLjJtY5igqv48QxfhNYmu4J0nBADPGPntU5FcLowWdAEdldFbca1ZCRrHB44_mCogGdBbWZyOXk8C5cRr9qRzQLpJWcZKopU6lRCnDZ3zg9ngQCg15JHVxPCz8spiw6MRw7qwtGElDAEqycInS3iQ7vc3pdNJ-Jr0Zucul1MqkWjHb_V8Vfe8-Jcfr3lXmWe1dXrY0tJO60624e24NGoQ1416SwsSbaDzVGkVhZZ6Qi9s05fsqNdoNO2m4bczFqYwrW5fP9p-GStOJpa7MpgivIUGW6SoUpTVCvasIlKDNLcWVjNIfT8gPcGuk-_0vdrAehA==)\n\n## 3.4 Contratos de dados entre serviços\n- Eventos `transaction.registered.v1` e `account.opened.v1` — [AsyncAPI](../contratos/asyncapi.yaml), [exemplos](../contratos/exemplos).\n- APIs REST — OpenAPI gerado: [Lançamentos](../contratos/openapi-transactions.json), [Consolidado](../contratos/openapi-consolidation.json), [Identidade](../contratos/openapi-identity.json).\n- **Minimização (LGPD art. 6º, III):** eventos não carregam nome nem documento; o Consolidado não armazena PII.\n\n## 3.5 Consistência, concorrência e integridade\n\n| Cenário | Mecanismo |\n|---|---|\n| Dois débitos simultâneos na mesma conta | Concorrência otimista (`version`) + até 5 retentativas com backoff; saldo nunca viola o limite (teste com 30 débitos paralelos) |\n| Mesma requisição repetida / corrida entre réplicas | Unique `(account_id, idempotency_key)` + replay do resultado original |\n| Commit ok e queda antes de publicar | Outbox: evento está no banco e será publicado |\n| Evento entregue duas vezes | Inbox (`message_id`) + PK `transaction_id` |\n| Eventos fora de ordem | Projeção comutativa (somas) |\n| Vários consumidores na mesma conta | `INSERT … ON CONFLICT DO UPDATE SET total = total + EXCLUDED.total` (atômico) |\n\n## 3.6 Ciclo de vida e retenção\n\n| Dado | Retenção | Observação |\n|---|---|---|\n| Lançamentos | ≥ 10 anos (política contábil/regulatória) | Particionamento por mês recomendado acima de ~500 M linhas |\n| Outbox processado | 7 dias | Limpeza automática pelo processor |\n| Inbox | 30 dias | Janela > máxima redelivery; job de limpeza (roadmap) |\n| Refresh tokens | Expiração + 30 dias | Auditoria de sessões |\n| Logs | 90 dias (prod) | Log Analytics; exportação para storage frio se exigido |\n\n## 3.7 Backup e recuperação\n- PostgreSQL Flexible Server: PITR de 35 dias, backup geo-redundante (prod), HA síncrona entre zonas → **RPO 0** para dados confirmados em falha de zona.\n- **Reconstrução do consolidado**: como é derivado, pode ser recalculado a partir de `transactions` (runbook [`docs/operacao/runbooks.md`](../operacao/runbooks.md#reconstruir-o-consolidado)).\n",
+          "filename" : "03-arquitetura-de-dados.md",
+          "format" : "Markdown",
+          "order" : 3,
+          "title" : ""
+        }, {
+          "content" : "# 4. Arquitetura de Aplicação (TOGAF ADM — Fase C, Aplicação)\n\n## 4.1 Visões C4\n- [Nível 1 — Contexto](../c4/c4-contexto.md)\n- [Nível 2 — Containers (inclui camada de UI/Cliente)](../c4/c4-containers.md)\n- [Nível 3 — Componentes](../c4/c4-componentes.md)\n- Modelo formal: [`docs/c4/workspace.dsl`](../c4/workspace.dsl) (Structurizr)\n\n## 4.2 Organização do código\n\n```\nsrc/\n├── API/                   # 1 - Presentation\n│   ├── CashFlow.Transactions.Api\n│   ├── CashFlow.Consolidation.Api\n│   ├── CashFlow.Identity.Api      # projeto único com pastas por camada (ADR-0008)\n│   └── CashFlow.Gateway           # YARP + rate limiting\n├── Application/           # 2 - Application (CQRS)\n│   ├── CashFlow.Transactions.Application\n│   └── CashFlow.Consolidation.Application\n├── Domain/                # 3 - Domain\n│   ├── CashFlow.Transactions.Domain\n│   └── CashFlow.Consolidation.Domain\n├── Infrastructure/        # 4 - Infra\n│   ├── CashFlow.Transactions.Infrastructure\n│   └── CashFlow.Consolidation.Infrastructure\n├── Tests/                 # 5 - Tests\n│   ├── CashFlow.Transactions.UnitTests / IntegrationTests\n│   ├── CashFlow.Consolidation.UnitTests / IntegrationTests\n│   ├── CashFlow.Identity.Tests\n│   ├── CashFlow.Gateway.Tests\n│   └── CashFlow.LoadTest          # teste de carga (console)\n└── Web/cashflow-web/      # Console Web (UI) + Nginx\ndocker/                    # Dockerfiles (identity, transactions, consolidation, gateway)\n```\n\nA organização usa uma pasta por camada (`API`, `Application`, `Domain`, `Infrastructure`, `Tests`), e dentro de cada uma um projeto por microsserviço. Não existe projeto compartilhado entre serviços ([ADR-0004](../adr/0004-contratos-sem-projeto-compartilhado.md)). Regras de dependência: [ADR-0013](../adr/0013-clean-architecture.md).\n\n## 4.3 Catálogo de APIs\n\n| Método | Rota (via Gateway) | Serviço | Escopo | Observações |\n|---|---|---|---|---|\n| POST | `/auth/token` | Identidade | anônimo | Rate limit estrito; `useCookie` para web |\n| POST | `/auth/refresh` | Identidade | refresh token | Rotação + detecção de reuso |\n| POST | `/auth/revoke` | Identidade | refresh token | Logout (revoga família) |\n| GET | `/.well-known/openid-configuration`, `/.well-known/jwks.json` | Identidade | anônimo | Discovery/JWKS |\n| POST | `/api/v1/accounts` | Lançamentos | `transactions:write` | Documento cifrado; resposta mascarada |\n| GET | `/api/v1/accounts/{id}` | Lançamentos | `transactions:read` | Saldo transacional (fonte da verdade) |\n| POST | `/api/v1/accounts/{id}/transactions` | Lançamentos | `transactions:write` | **`Idempotency-Key` obrigatório**; 201/200 replay/409/422 |\n| GET | `/api/v1/accounts/{id}/transactions?from&to&limit` | Lançamentos | `transactions:read` | Extrato |\n| GET | `/api/v1/accounts/{id}/balance?at=` | Consolidado | `balances:read` | Saldo em qualquer instante |\n| GET | `/api/v1/accounts/{id}/daily-balances?from&to` | Consolidado | `balances:read` | Até 366 dias |\n\nErros seguem **RFC 9457 (Problem Details)** com `code` estável:\n\n| HTTP | Quando |\n|---|---|\n| 400 | Validação (`validation.failed`), header de idempotência ausente |\n| 401 / 403 | Sem token/inválido · escopo insuficiente |\n| 404 | Conta inexistente |\n| 409 | `idempotency.key_reused`, `account.duplicate_holder`, `transaction.concurrency_conflict` |\n| 422 | Regra de negócio (`account.insufficient_funds`, `account.inactive`) |\n| 429 | Rate limit (com `Retry-After`) |\n\n## 4.4 Padrões aplicados\n\n| Padrão | Onde | Motivo |\n|---|---|---|\n| Clean Architecture / DIP | Serviços de negócio | Testabilidade, isolamento de tecnologia |\n| Aggregate (DDD) | `Account` | Invariante de saldo em um único ponto |\n| CQRS (entre serviços) | Lançamentos (escrita) × Consolidado (leitura) | Modelos otimizados para cada carga |\n| Transactional Outbox | Lançamentos | Atomicidade banco + evento |\n| Idempotent Consumer / Inbox | Consolidado | At-least-once sem duplicidade |\n| Retry com backoff + DLQ | Consumidor | Falhas transitórias × permanentes |\n| Idempotency-Key | API de escrita | Retentativas seguras do cliente |\n| Optimistic Concurrency | `Account.Version` | Concorrência sem locks longos |\n| Result pattern | Application/Domain | Erros de negócio explícitos |\n| API Gateway / BFF de borda | YARP | Proteção e roteamento |\n| Health Check (liveness × readiness) | Todos | Orquestrador distingue \"morto\" de \"não pronto\" |\n| Tolerant Reader | Consumidor | Evolução de contrato sem quebra |\n\n## 4.5 Comportamento sob falha (resumo)\n\n| Falha | Efeito | Resultado medido/testado |\n|---|---|---|\n| RabbitMQ indisponível | Lançamentos seguem (outbox acumula); readiness *Degraded* | 0 erro em 600 escritas com broker fora por 18 s; convergência total |\n| Consolidado indisponível | Lançamentos seguem; mensagens aguardam na fila quorum | Fila absorve; KEDA escala ao voltar |\n| Banco do Consolidado lento/indisponível | Retry com atraso → DLQ após N tentativas | `RetryAndDeadLetterTests` |\n| Mensagem inválida | DLQ imediata (sem retry inútil) | `Poison_message_goes_straight_to_dlq_without_retries` |\n| Réplica de Lançamentos cai no meio do publish | Mensagem reenviada (at-least-once), Inbox deduplica | `Redelivered_message_is_deduplicated_by_inbox` |\n| Pico de acessos/abuso | 429 no gateway/WAF; serviços protegidos | `GatewayTests` |\n| Identity indisponível | Tokens já emitidos seguem válidos (validação local via JWKS em cache) | — |\n\nDetalhes e evidências: [`07-qualidade-e-resiliencia.md`](07-qualidade-e-resiliencia.md).\n",
+          "filename" : "04-arquitetura-de-aplicacao.md",
+          "format" : "Markdown",
+          "order" : 4,
+          "title" : ""
+        }, {
+          "content" : "# 5. Arquitetura de Tecnologia (TOGAF ADM — Fase D)\n\n## 5.1 Stack\n\n| Camada | Tecnologia | Versão | Licença | Decisão |\n|---|---|---|---|---|\n| Runtime | .NET / ASP.NET Core | 10.0 LTS | MIT | [ADR-0010](../adr/0010-runtime-dotnet-10-lts.md) |\n| Persistência | PostgreSQL + EF Core + Npgsql | 17 / 10.0 | PostgreSQL / MIT | [ADR-0011](../adr/0011-postgresql.md) |\n| Mensageria | RabbitMQ + RabbitMQ.Client | 4.1 / 7.2 | MPL-2.0 / Apache-2.0 | [ADR-0003](../adr/0003-mensageria-rabbitmq.md) |\n| Gateway | YARP | 2.3 | MIT | [ADR-0014](../adr/0014-api-gateway-e-protecao-de-borda.md) |\n| Validação | FluentValidation | 12.2 | Apache-2.0 | |\n| Resiliência | Polly | 8.9 | BSD-3 | |\n| Observabilidade | OpenTelemetry .NET (OTLP) | 1.20 | Apache-2.0 | |\n| Documentação de API | Microsoft.AspNetCore.OpenApi + Scalar | 10.0 / 2.18 | MIT | |\n| Testes | xUnit v3, Shouldly, NSubstitute, Testcontainers | — | Apache-2.0 / BSD-3 / MIT | [ADR-0007](../adr/0007-bibliotecas-e-licencas.md) |\n| Containers | Docker (multi-stage, Alpine, não-root) | — | — | |\n| Nuvem | Azure Container Apps, PostgreSQL Flexible Server, Key Vault, Front Door Premium + WAF | — | — | [ADR-0009](../adr/0009-azure-container-apps.md) |\n| IaC | Terraform + azurerm | 1.13 / 4.81 | BUSL (CLI) / MPL-2.0 | |\n| CI | GitHub Actions + Dependabot | — | — | |\n\n## 5.2 Ambiente local (Docker Compose)\n\n![](http://localhost:3000/svg/pako:eJxVkdFKwzAUhl_lkAtRsLMDwTFkF25SNja6iTAh7uKkPe2ibTLTzDlKn8ZH8cVM17nVcxH4_y_n55ykBBbpmFifJZneRWs0FqZPrwpcFVuRGtysITFaWVJxY9e1fHzgOxLQ7_k9_16Ym4FKpfoC9fOtPaO1XTV3T02nLIHR-7-oYMlTtLTDfZ3m-6szGo-4jElZafct9_mFW4OqwMhKrYoWGYY8co7OZIw1a6F5wC83urCpoQK6d1ctNFuUpUEhpM0_4LbTraozmwT8DSklc9hxY3QiMwItCjKfKGR2nuy0k3sa8LyB26vRwfIgxyO4cKO7Yxg2wIkazAPnzRaNNwyPXiNni4P863AZbXpMA68D4fN0Dh3HJo6xa2A5mRxlzPols2vK6w-OKcFtZllV_QJnfZDb)\n\n- Builds **multi-stage** (SDK só no estágio de build), restore em **modo travado** (lock files), imagem final `aspnet:10.0-alpine` executando como **usuário não-root** (`$APP_UID`) com binários somente-leitura.\n- **Healthchecks** em todos os containers; `depends_on: condition: service_healthy` garante ordem de subida.\n- Hardening em runtime: `read_only: true`, `tmpfs /tmp`, `cap_drop: ALL`, `no-new-privileges`, limites de CPU/memória.\n- **Segredos via Docker secrets** (arquivos em `/run/secrets`, lidos pelo provedor `KeyPerFile`), gerados por `scripts/generate-secrets.*`. Nada sensível no `docker-compose.yml` nem no repositório.\n- Redes separadas: `frontend` (web ↔ gateway) e `backend` (serviços, banco, broker). Postgres e RabbitMQ Management expostos só em `127.0.0.1`.\n\n## 5.3 Ambiente de nuvem (Azure, Terraform)\n\n![](http://localhost:3000/svg/pako:eJx1VM1u00AQfpWRD6gVuH9QDhGqtI6TNCRNUydNKjk9rO2Ns2i9a3bXhLSpxEPwAhw5c-BO34QnYXebAjHFlizbM98333wz9i14qciI1_DmTCzTBZYaxsGMgzku40tV3X-RVCjYhybmmKpr8P2T9el4PBytAbXDGN1UkkBbCq4hFELCUJKCVsWbRO6fTFEbwmgER3uH8OM7BELDmaHJibSPEdYEGC2otk8dIiCIrh9KG2ZX6Mp3_H477IZr6EzRVhimrWDzRlVJLnG5gMmgNY5n3mRANBwe7L062DPn_uFr-PnpMwQS31AGI1Hpxczb1NqCoyYy6KbpBlNuZKKyVNDiH6hpsCCmx50bwTFIklU8w1yT3S0ee1hRcYr9JUlqEaPfBnLT9xKvasFu6II0M1WoXjn_KM8lUQqoKSS5qCHGVw6hJeYKp5oKrhyqoByOQN5_LRlNsaqhmucOlZpswWiGLc7Beq0QNWBOGa4hzi4cQuIkobp475I3Y6eM1Pnfngcm-52fJX4ihFZGXvlXCuHZE7aHwcPYFCfaN5pwghWBncGo0wB1_w2wGcO_Tg87KN4ZCqWNS6OLPrQZ-UgTRpzCUwS1UdktG3bHEbw8znafkvT7pjeJe2QFE1wx7ciiADUtvKxkTqCUQhNn-Ialj6ZxX-SAOGYrTVMFz-3mQJcrmi_0o0WoGcV_VisiOTXuPO6BmSY8s9MxV7MLbv0fPpYMupulWBtlj1Quw1beerFGqRxWjK1tsf8SW-dm3HsBXkFkgWnmNW49vSCF_RFkZG779u7ufgF_o0Nw)\n\nCódigo: [`infra/terraform`](../../infra/terraform) — módulos `network`, `observability`, `keyvault`, `postgres`, `container_apps`, `edge` compostos em `modules/platform`; ambientes `environments/dev` e `environments/prod`. Estado remoto em Storage com autenticação Entra ID e lock.\n\n| Aspecto | dev | prod |\n|---|---|---|\n| Réplicas mínimas por API | 0 (escala a zero) | 2 (zonas distintas) |\n| PostgreSQL | B1ms, sem HA | GP D2ds_v5, HA zona redundante, geo-backup, PITR 35 d |\n| WAF | Detection | Prevention + geo-filtro BR |\n| Logs | 30 d, teto 2 GB/dia | 90 d, teto 10 GB/dia |\n| Orçamento | US$ 700/mês | US$ 2.600/mês |\n\n## 5.4 Escalabilidade e capacidade\n- **Stateless:** todas as APIs escalam horizontalmente; nenhum estado em memória além de caches de configuração.\n- **Lançamentos:** gargalo natural é a contenção por conta (concorrência otimista). Contas diferentes escalam linearmente. Para contas \"quentes\" (ex.: conta de liquidação), evolução: *sharding* do saldo ou fila serial por conta.\n- **Outbox:** várias réplicas processam em paralelo (`SKIP LOCKED`); lote de 100 a cada 500 ms ≈ 200 eventos/s por réplica, e lotes cheios são processados sem espera.\n- **Consolidado:** KEDA escala por profundidade de fila; leituras são consultas indexadas O(dias + lançamentos do dia). Medido localmente (4 vCPU): **90 req/s com p95 7,7 ms** e 0% de erro.\n- **Banco:** pool de conexões por réplica limitado (60); PgBouncer integrado do Flexible Server habilitável; réplica de leitura para o Consolidado se necessário.\n\n## 5.5 Alta disponibilidade e recuperação de desastres\n\n| Componente | HA | DR |\n|---|---|---|\n| APIs | ≥ 2 réplicas em zonas distintas; probes | Imagens no ACR; IaC recria a região |\n| PostgreSQL | Standby síncrono em outra zona (failover automático) | Geo-backup → restauração em região par |\n| RabbitMQ | Fase 1: nó único persistente (outbox protege escrita) → alvo cluster 3 nós | Mensagens não confirmadas permanecem no outbox |\n| Front Door | Global, gerenciado | — |\n\n**RPO:** 0 para lançamentos confirmados (commit síncrono + HA). **RTO:** ~minutos para falha de zona; < 4 h para falha de região (restauração geo + IaC).\n",
+          "filename" : "05-arquitetura-de-tecnologia.md",
+          "format" : "Markdown",
+          "order" : 5,
+          "title" : ""
+        }, {
+          "content" : "# 6. Arquitetura de Segurança\n\n## 6.1 Modelo de ameaças (STRIDE resumido)\n\n| Ameaça | Exemplo | Controle |\n|---|---|---|\n| **S**poofing | Token forjado / senha vazada | JWT RS256 validado por JWKS (só o Identity assina); algoritmos restritos; lockout; rate limit de login; PBKDF2 |\n| **T**ampering | Alterar valor em trânsito ou no banco | TLS (Front Door → apps; `require_secure_transport` no PostgreSQL); lançamentos imutáveis; AES-GCM autenticado para PII |\n| **R**epudiation | \"Não fiz esse lançamento\" | `sub` do token + `traceparent` em logs estruturados; lançamentos append-only com `occurred_at` do servidor |\n| **I**nformation disclosure | Vazamento de CPF / segredos | PII cifrada em campo + mascarada na resposta; eventos sem PII; segredos em Key Vault/Docker secrets; `Cache-Control: no-store` |\n| **D**enial of service | Flood, força bruta | WAF (rate limit por IP, Bot Manager), gateway (token bucket por IP, política de auth), limites de payload e headers, rate limit por cliente nos serviços |\n| **E**levation of privilege | Analista registrando lançamento | Autorização por escopo; política fallback \"autenticado\"; identidades gerenciadas com menor privilégio |\n\n## 6.2 Gestão de segredos (sem credenciais em texto puro)\n\n| Ambiente | Mecanismo |\n|---|---|\n| Local / CI | `scripts/generate-secrets.sh|ps1` gera senhas aleatórias (32+ chars), chaves AES-256, chave RSA 3072 e connection strings em `secrets/` (no `.gitignore`); montados como **Docker secrets** em `/run/secrets`; a aplicação lê via `AddKeyPerFile` |\n| Nuvem | **Azure Key Vault** (RBAC, soft delete 90 d, purge protection em prod); cada app acessa com **identidade gerenciada própria** (role *Key Vault Secrets User*); Container Apps resolvem `key_vault_secret_id` sem expor valores; segredos com data de expiração (rotação a cada 180 dias) |\n\n- `appsettings.json` não contém nenhuma senha/chave; serviços **falham na subida** se um segredo obrigatório faltar (fail fast).\n- Usuários de banco distintos por serviço (menor privilégio); o usuário administrador só é usado pelo job de bootstrap.\n- RabbitMQ: usuário `guest` não é usado; credenciais via arquivo de configuração montado como segredo.\n\n## 6.3 Autenticação e persistência de sessão\nDetalhado no [ADR-0005](../adr/0005-autenticacao-jwt-rs256-e-refresh-token.md):\n- Access token 10 min (RS256) · refresh token 7 dias, opaco, **hash SHA-256 no banco**, **rotação** e **detecção de reuso** com revogação da família.\n- Web: refresh token em cookie `HttpOnly; Secure; SameSite=Strict; Path=/auth`; ao recarregar a página a sessão é restaurada via `/auth/refresh` (persistência de autenticação sem `localStorage`).\n- Logout revoga a cadeia inteira.\n\n## 6.4 Criptografia\n\n| Dado | Em trânsito | Em repouso |\n|---|---|---|\n| Todos | TLS 1.2+ (Front Door, PostgreSQL `require_secure_transport`) | Criptografia de disco do Azure (AES-256, chaves gerenciadas) |\n| CPF/CNPJ | — | **AES-256-GCM em nível de campo** com `keyId` (rotação sem recriptografar tudo) + **blind index HMAC-SHA256** para unicidade/busca |\n| Senhas | — | PBKDF2-HMAC-SHA512 (100 mil iterações, salt por usuário) |\n| Refresh tokens | — | SHA-256 |\n| Chave JWT | — | Key Vault (evolução: assinatura em Key Vault/HSM sem exportar chave) |\n\n## 6.5 Proteção ativa\nCamadas descritas no [ADR-0014](../adr/0014-api-gateway-e-protecao-de-borda.md): WAF (DRS 2.1, Bot Manager, rate limit, geo), gateway (token bucket por IP, limite de auth, payload, origem obrigatória via Front Door), serviços (rate limit por `sub`) e Identity (rate limit + lockout). Testado em `GatewayTests` e `LoginRateLimitTests`.\n\n## 6.6 Segurança de aplicação e supply chain\n- Cabeçalhos: `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, CSP restritiva na UI, HSTS no gateway sob HTTPS; banner `Server` removido.\n- Validação de entrada em todos os comandos (FluentValidation) e limites de tamanho.\n- Containers não-root, filesystem somente leitura, `cap_drop: ALL`.\n- Dependências: versões fixadas + lock files; **NuGetAudit (inclui transitivas, também nos projetos de teste)** quebra o build em CVE; `dotnet list package --vulnerable --include-transitive` no CI; scan Trivy das imagens; verificação de licenças.\n\n## 6.7 LGPD e conformidade\n- **Minimização:** o Consolidado e os eventos não recebem dados pessoais.\n- **Finalidade e acesso:** escopos por perfil; documento sempre mascarado nas respostas.\n- **Residência:** região Brazil South.\n- **Direito de eliminação:** dados pessoais concentrados em `accounts` (crypto-shredding possível destruindo a chave da versão, mantendo os lançamentos contábeis anonimizados).\n\n## 6.8 Lacunas conhecidas (próximos passos)\n- MFA/SSO via IdP corporativo (ADR-0008).\n- mTLS entre serviços (habilitável no Container Apps) e Private Link Front Door → ambiente interno.\n- Private Endpoint para Key Vault e ACR.\n- Assinatura de imagens (cosign) e SBOM no pipeline.\n",
+          "filename" : "06-seguranca.md",
+          "format" : "Markdown",
+          "order" : 6,
+          "title" : ""
+        }, {
+          "content" : "# 7. Qualidade, Resiliência e Observabilidade\n\n## 7.1 Cenários de qualidade (ATAM)\n\n| Atributo | Estímulo | Resposta esperada | Evidência |\n|---|---|---|---|\n| Disponibilidade | Broker cai durante pico de escrita | Lançamentos continuam 201; eventos publicados ao voltar | Carga com RabbitMQ parado 18 s: 600/600 OK, convergência em 16,9 s |\n| Desempenho | 50 req/s no consolidado + 20 escritas/s | ≤ 5% erro, p95 < 500 ms | 0% erro; p95 8,8 ms (leitura) e 12,8 ms (escrita) |\n| Consistência | 30 débitos concorrentes na mesma conta | Saldo nunca abaixo do limite; ledger = saldo | `Parallel_debits_never_break_balance_invariant` |\n| Idempotência | 20 requisições paralelas com a mesma chave | Exatamente 1 efeito | `Concurrent_requests_with_same_key_produce_exactly_one_effect` |\n| Recuperabilidade | Mensagem envenenada | DLQ sem bloquear a fila | `Poison_message_goes_straight_to_dlq_without_retries` |\n| Segurança | Token expirado / outra audiência / outra chave | 401 | `AuthorizationTests` |\n| Segurança | Força bruta no login | 429 + lockout 423 | `LoginRateLimitTests`, `Repeated_failures_lock_the_account…` |\n| Manutenibilidade | Mudança no contrato do evento | Build falha antes do deploy | `ProducerContractTests` / `ConsumerContractTests` |\n\n## 7.2 Observabilidade\n- **Logs** estruturados em JSON (console → coletor), com `TraceId/SpanId` em escopo.\n- **Traces** OpenTelemetry (ASP.NET Core, HttpClient, Npgsql, Outbox, Consumer) exportados via OTLP; o `traceparent` W3C viaja no header AMQP, ligando a requisição HTTP ao processamento no Consolidado.\n- **Métricas**: `cashflow.outbox.published/failed`, `cashflow.consumer.processed/duplicates/retried/deadlettered`, métricas de runtime e HTTP.\n- **Health checks**: `/health/live` (processo) e `/health/ready` (PostgreSQL, RabbitMQ, backlog do outbox, consumidor ativo). Dependência de mensageria fora → *Degraded* (não derruba o pod).\n- Local: `docker compose --profile observability up` sobe Jaeger (UI em http://localhost:16686).\n\n### Alertas recomendados (SLO-based)\n| Alerta | Condição |\n|---|---|\n| Outbox parado | mensagens pendentes > 2 min ou estacionadas > 0 |\n| DLQ | `deadlettered` > 0 em 5 min |\n| Defasagem do consolidado | profundidade da fila > 5.000 por 5 min |\n| Erro de API | taxa 5xx > 1% em 5 min (burn rate do SLO 99,95%) |\n| Banco | CPU > 80% por 15 min (provisionado no Terraform) |\n\nEstratégia de testes completa: [`docs/testes/estrategia-de-testes.md`](../testes/estrategia-de-testes.md).\n",
+          "filename" : "07-qualidade-e-resiliencia.md",
+          "format" : "Markdown",
+          "order" : 7,
+          "title" : ""
+        }, {
+          "content" : "# 8. Oportunidades, Soluções e Plano de Migração (TOGAF ADM — Fases E/F)\n\n## 8.1 Estratégia de transição do legado — Strangler Fig\n\n![](http://localhost:3000/svg/pako:eJx10k1qAjEUB_CrPLJqoeJ87KR1M9ZuBinFRWF08Zw8nYFJIkkcKSL0EL2DJ-gJvElP0phx6gc1m0dC_nm_hGyA5YoT67F5pdZ5gdpC-jaR4IZZzRYalwWMg2zChmgIAvj5_IJX1FhRpeDOFMjV-n7Cpk3kMNIgS2nh1uEJ5kpamkKnA8kg6VJN0irjpn0YBVmCphi6rpAoaVRVcpd5nOlunwQYJWYaj6eS5NeisBWFXpRSaVcaQaoaLzFhiyGTawfwmAtImJ31B0O6Jqia84zn1CXCC1pa48dtUNSCIg96dt1K-w9oFJ3unaLc71A0lvPHOvel0d8NBAjl6hHnbcsulC7lEPvd_psMoLTlAs1taNxCYw8dkKlcwCMuofEJmiuxrMiqqRe9tyDeZLm67jYO_MZx2JSoKfFEsgdggrTAkrPehtmCxOHvcZrjqrJsu_0FElnWJg==)\n\n| Fase | Critério de saída | Rollback |\n|---|---|---|\n| 0 — Sombra | Divergência zero entre saldo legado e consolidado por 30 dias (reconciliação diária automatizada) | Desligar consumidor |\n| 1 — Leituras | SLO de leitura atendido por 2 semanas com 100% do tráfego | Gateway volta a rota para o legado |\n| 2 — Escritas | Canais migrados por lote (feature flag por canal); reconciliação contínua | Flag por canal |\n| 3 — Desligamento | Nenhum consumidor do legado; dados históricos migrados e reconciliados | — |\n\nMigração de dados históricos: carga inicial dos saldos de abertura por conta como lançamentos de \"saldo inicial\" datados, seguida de reconciliação.\n\n## 8.2 Roadmap de evolução\n\n| Horizonte | Item | Motivação |\n|---|---|---|\n| Curto | IdP corporativo (Entra ID) com MFA; OpenIddict para client credentials | ADR-0008 |\n| Curto | RabbitMQ em cluster de 3 nós (quorum real) | ADR-0003 |\n| Curto | Private Link Front Door → ACA interno; Private Endpoints KV/ACR | Segurança |\n| Médio | Estornos com fluxo de aprovação (4 olhos) e transferências (saga com compensação) | Negócio |\n| Médio | Cache distribuído (Redis) para consolidado em leituras repetidas | Pico > 500 rps |\n| Médio | Particionamento de `transactions` por mês; arquivamento frio | Volume |\n| Médio | Azure API Management para parceiros externos (chaves, quotas, portal) | Exposição de APIs |\n| Longo | CDC (Debezium) no lugar do polling do outbox | Latência/escala |\n| Longo | Multi-região ativo-passivo com failover do banco | DR < 1 h |\n\n## 8.3 O que eu faria diferente com mais tempo\n- Fechamento contábil no fuso America/Sao_Paulo com regra de \"data de competência\" separada da data de processamento.\n- Testes de caos automatizados no CI (Toxiproxy) para latência de rede e partições.\n- Mutation testing (Stryker.NET, Apache-2.0) nas regras de domínio.\n- Contract testing com schema JSON gerado a partir do AsyncAPI e publicado como artefato versionado.\n",
+          "filename" : "08-oportunidades-e-migracao.md",
+          "format" : "Markdown",
+          "order" : 8,
+          "title" : ""
+        }, {
+          "content" : "# 9. Governança de Arquitetura (TOGAF ADM — Fases G/H)\n\n## 9.1 Conformidade automatizada (fitness functions)\n\n| Regra | Como é verificada | Onde |\n|---|---|---|\n| Compila sem erros **e sem warnings** | `TreatWarningsAsErrors` + analisadores `latest-recommended` + `EnforceCodeStyleInBuild` | `Directory.Build.props`, CI |\n| Sem vulnerabilidades conhecidas (inclui transitivas e projetos de teste) | `NuGetAudit` (`all`) + `dotnet list package --vulnerable --include-transitive` | Build, CI |\n| Somente licenças permissivas | `scripts/check-licenses.py` (falha o job) | CI `licenses` |\n| Versões fixadas e reprodutíveis | CPM + `packages.lock.json` + `--locked-mode` | Build, Docker, CI |\n| Contratos de eventos compatíveis | Testes de contrato produtor/consumidor | CI |\n| Requisito de volumetria | `CashFlow.LoadTest` com limites | CI `containers-e2e` |\n| IaC válido e formatado | `terraform fmt -check` + `validate` | CI `terraform` |\n| Sem acoplamento de compilação entre serviços | Não existe projeto compartilhado; Domain sem dependências | Revisão + estrutura |\n| Decisões registradas | ADR no mesmo PR da mudança | Revisão de código |\n\n## 9.2 Gestão de mudanças de arquitetura\n- Mudança estrutural → ADR em `Proposto` → revisão (arquitetura + segurança + time) → `Aceito` → implementação no mesmo PR.\n- Dependabot semanal (NuGet, Docker, Actions) e mensal (Terraform), agrupado por família.\n- Política de runtime: migrar para cada .NET LTS em até 6 meses do GA (ADR-0010).\n- Revisão trimestral de custos: real (Cost Management, por tag) × modelo (`infra/finops/cost-model.csv`).\n\n## 9.3 Licenças\nPolítica e inventário: [`docs/governanca/licencas.md`](../governanca/licencas.md) e [`docs/governanca/inventario-licencas.md`](../governanca/inventario-licencas.md).\n",
+          "filename" : "09-governanca.md",
+          "format" : "Markdown",
+          "order" : 9,
+          "title" : ""
+        } ]
+      },
+      "id" : "6",
+      "name" : "CashFlow",
+      "properties" : {
+        "structurizr.dsl.identifier" : "cashflow"
+      },
+      "relationships" : [ {
+        "description" : "Exporta telemetria",
+        "destinationId" : "4",
+        "id" : "35",
+        "sourceId" : "6",
+        "tags" : "Relationship",
+        "technology" : "OTLP"
+      } ],
+      "tags" : "Element,Software System"
+    } ]
+  },
+  "name" : "CashFlow",
+  "properties" : {
+    "structurizr.inspection.error" : "0",
+    "structurizr.inspection.info" : "0",
+    "structurizr.inspection.ignore" : "0",
+    "structurizr.inspection.warning" : "0"
+  },
+  "views" : {
+    "configuration" : {
+      "properties" : {
+        "mermaid.format" : "svg",
+        "mermaid.url" : "http://localhost:3000"
+      },
+      "styles" : {
+        "elements" : [ {
+          "background" : "#438dd5",
+          "color" : "#ffffff",
+          "tag" : "Container"
+        }, {
+          "shape" : "Cylinder",
+          "tag" : "Database"
+        }, {
+          "background" : "#8a8a8a",
+          "tag" : "Externo"
+        }, {
+          "background" : "#5a6b7d",
+          "tag" : "Infra"
+        }, {
+          "background" : "#0b5cad",
+          "color" : "#ffffff",
+          "shape" : "Person",
+          "tag" : "Person"
+        }, {
+          "shape" : "Pipe",
+          "tag" : "Queue"
+        }, {
+          "background" : "#1168bd",
+          "color" : "#ffffff",
+          "tag" : "Software System"
+        }, {
+          "shape" : "WebBrowser",
+          "tag" : "Web"
+        } ]
+      },
+      "terminology" : { }
+    },
+    "containerViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "9",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "11",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "13",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "14",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "15",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "16",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "C2-Containers",
+      "name" : "Container View: CashFlow",
+      "order" : 2,
+      "relationships" : [ {
+        "id" : "17"
+      }, {
+        "id" : "19"
+      }, {
+        "id" : "21"
+      }, {
+        "id" : "23"
+      }, {
+        "id" : "24"
+      }, {
+        "id" : "25"
+      }, {
+        "id" : "26"
+      }, {
+        "id" : "27"
+      }, {
+        "id" : "28"
+      }, {
+        "id" : "29"
+      }, {
+        "id" : "30"
+      }, {
+        "id" : "31"
+      }, {
+        "id" : "32"
+      }, {
+        "id" : "33"
+      }, {
+        "id" : "34"
+      }, {
+        "id" : "36"
+      } ],
+      "softwareSystemId" : "6"
+    } ],
+    "systemContextViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "key" : "C1-Contexto",
+      "name" : "System Context View: CashFlow",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "18"
+      }, {
+        "id" : "20"
+      }, {
+        "id" : "22"
+      }, {
+        "id" : "35"
+      }, {
+        "id" : "37"
+      } ],
+      "softwareSystemId" : "6"
+    } ]
+  }
+}

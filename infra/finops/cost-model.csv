@@ -1,0 +1,29 @@
+environment,category,service,resource,sku,quantity,unit,unit_price_usd,optimizable,notes
+prod,Borda,Azure Front Door,Perfil Premium (base),Premium_AzureFrontDoor,1,mês,330.00,no,Inclui WAF com regras gerenciadas (DRS 2.1 + Bot Manager)
+prod,Borda,Azure Front Door,Requisições,Premium,5200,10 mil req,0.0125,no,~20 rps médios (pico 70 rps) ≈ 52 M req/mês
+prod,Borda,Azure Front Door,Transferência de dados (saída),Zona América do Sul,110,GB,0.18,no,~2 KB por resposta
+prod,Computação,Container Apps,vCPU ativa (identity 2×0.5; transactions 2×1; consolidation 2×1; gateway 2×0.5; web 2×0.25; rabbitmq 1×1),Consumption,19710000,vCPU-s,0.0000336,yes,7.5 vCPU × 2.628 M s/mês (mínimo de réplicas sempre ativo); elegível a Savings Plan
+prod,Computação,Container Apps,Memória ativa,Consumption,39420000,GiB-s,0.0000042,yes,15 GiB × 2.628 M s/mês
+prod,Computação,Container Apps,Requisições HTTP,Consumption,50,milhão req,0.40,no,2 M/mês gratuitos já descontados
+prod,Computação,Container Apps,Franquia gratuita mensal (vCPU + memória),Consumption,1,mês,-7.56,no,180 mil vCPU-s + 360 mil GiB-s por assinatura
+prod,Dados,PostgreSQL Flexible Server,Computação GP 2 vCores (primário + standby HA zona redundante),GP_Standard_D2ds_v5,2,instância-mês,190.00,yes,Reserva de 1 ano reduz ~35%
+prod,Dados,PostgreSQL Flexible Server,Armazenamento SSD P10 (primário + standby),128 GiB,256,GB-mês,0.17,no,Auto-grow habilitado
+prod,Dados,PostgreSQL Flexible Server,Backup geo-redundante (PITR 35 dias),GRS,128,GB-mês,0.20,no,Backup local até 100% do provisionado é gratuito
+prod,Mensageria,Storage Account (Azure Files),Volume persistente RabbitMQ,ZRS 20 GiB,20,GB-mês,0.24,no,Fase 1: nó único (ver ADR-0003)
+prod,Segurança,Key Vault,Operações de segredo,Standard,150,10 mil operações,0.03,no,Segredos lidos na subida das réplicas
+prod,Observabilidade,Log Analytics + Application Insights,Ingestão de logs/traces,PerGB2018,85,GB,3.45,yes,~3 GB/dia após amostragem de 25% (5 GB/mês gratuitos descontados); teto diário 10 GB
+prod,Observabilidade,Log Analytics,Retenção além de 31 dias (até 90),PerGB2018,180,GB-mês,0.12,yes,Mover para Basic/Archive reduz custo
+prod,Plataforma,Container Registry,Registro de imagens,Standard,1,mês,20.00,no,
+prod,Segurança,Defender for Cloud (recomendado),Defender for open-source relational DBs,Plano por instância,1,instância-mês,15.00,no,Recomendado para ambiente financeiro
+dev,Borda,Azure Front Door,Perfil Premium (base),Premium_AzureFrontDoor,1,mês,330.00,yes,Otimização: Standard (35 USD) sem regras gerenciadas em dev
+dev,Borda,Azure Front Door,Requisições + dados,Premium,1,mês,5.00,no,Baixo volume
+dev,Computação,Container Apps,vCPU ativa (APIs escalam a zero; ~8h × 22 dias),Consumption,2534400,vCPU-s,0.0000336,no,4 vCPU × 633.6 mil s
+dev,Computação,Container Apps,vCPU RabbitMQ (sempre ativo),Consumption,2628000,vCPU-s,0.0000336,yes,1 vCPU; otimização: desligar fora do horário comercial
+dev,Computação,Container Apps,Memória ativa,Consumption,12321600,GiB-s,0.0000042,no,APIs 8 GiB × 633.6 mil s + RabbitMQ 2 GiB × 2.628 M s
+dev,Computação,Container Apps,Franquia gratuita mensal,Consumption,1,mês,-7.56,no,
+dev,Dados,PostgreSQL Flexible Server,Computação burstable 1 vCore,B_Standard_B1ms,1,instância-mês,16.00,no,Sem HA
+dev,Dados,PostgreSQL Flexible Server,Armazenamento,32 GiB,32,GB-mês,0.17,no,
+dev,Mensageria,Storage Account (Azure Files),Volume RabbitMQ,LRS 20 GiB,20,GB-mês,0.08,no,
+dev,Segurança,Key Vault,Operações,Standard,20,10 mil operações,0.03,no,
+dev,Observabilidade,Log Analytics + Application Insights,Ingestão,PerGB2018,10,GB,3.45,no,Teto diário 2 GB
+dev,Plataforma,Container Registry,Registro de imagens,Standard,1,mês,20.00,yes,Compartilhar o registro de prod com escopo por repositório

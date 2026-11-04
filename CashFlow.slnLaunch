@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "Todos os serviços (debug local)",
+    "Projects": [
+      { "Path": "src\\API\\CashFlow.Identity.Api\\CashFlow.Identity.Api.csproj", "Action": "Start" },
+      { "Path": "src\\API\\CashFlow.Transactions.Api\\CashFlow.Transactions.Api.csproj", "Action": "Start" },
+      { "Path": "src\\API\\CashFlow.Consolidation.Api\\CashFlow.Consolidation.Api.csproj", "Action": "Start" },
+      { "Path": "src\\API\\CashFlow.Gateway\\CashFlow.Gateway.csproj", "Action": "Start" }
+    ]
+  }
+]

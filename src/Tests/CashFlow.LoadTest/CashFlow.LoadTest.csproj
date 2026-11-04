@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Teste de carga sem dependências de terceiros (NBomber exige licença comercial; k6 é AGPL).
+    Modelo de carga ABERTO (taxa de chegada constante), que não mascara latência como o modelo fechado.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+</Project>

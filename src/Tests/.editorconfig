@@ -1,0 +1,15 @@
+[*.cs]
+# Nomes de testes descritivos com underscore
+dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.CA2007.severity = none
+dotnet_diagnostic.CA1861.severity = none
+dotnet_diagnostic.CA5394.severity = none
+dotnet_diagnostic.CA2234.severity = none
+dotnet_diagnostic.CA1822.severity = none
+dotnet_diagnostic.CA2201.severity = none
+dotnet_diagnostic.CA1001.severity = none
+dotnet_diagnostic.CA1063.severity = none
+dotnet_diagnostic.CA1816.severity = none
+dotnet_diagnostic.CA2213.severity = none
+dotnet_diagnostic.CA1859.severity = none
+dotnet_diagnostic.xUnit1051.severity = suggestion

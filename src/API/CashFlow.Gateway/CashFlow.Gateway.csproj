@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <!-- API Gateway (BFF de borda): roteamento, rate limiting, CORS e cabeçalhos de segurança. -->
+  <ItemGroup>
+    <PackageReference Include="Yarp.ReverseProxy" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="CashFlow.Gateway.Tests" />
+  </ItemGroup>
+</Project>
