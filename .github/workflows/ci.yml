@@ -131,9 +131,27 @@ jobs:
             compose-logs.txt
           if-no-files-found: ignore
 
+      # O instalador oficial do Trivy baixa de get.trivy.dev, domínio que não resolve mais.
+      # Instalamos direto do release no GitHub (com verificação de checksum) e pulamos o setup da action.
+      - name: Instalar Trivy
+        env:
+          TRIVY_VERSION: "0.70.0"
+        run: |
+          base="https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}"
+          tarball="trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          cd "$RUNNER_TEMP"
+          curl -fsSLO "$base/$tarball"
+          curl -fsSLO "$base/trivy_${TRIVY_VERSION}_checksums.txt"
+          grep " $tarball\$" "trivy_${TRIVY_VERSION}_checksums.txt" | sha256sum -c -
+          mkdir -p "$HOME/.local/bin"
+          tar -xzf "$tarball" -C "$HOME/.local/bin" trivy
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/trivy" --version
+
       - name: Scan de vulnerabilidades das imagens (Trivy)
         uses: aquasecurity/trivy-action@v0.36.0
         with:
+          skip-setup-trivy: true
           image-ref: cashflow/transactions:local
           severity: CRITICAL,HIGH
           ignore-unfixed: true

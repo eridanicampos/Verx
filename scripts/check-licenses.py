@@ -75,7 +75,9 @@ def main():
     print(f"{len(rows)} pacotes analisados: " + ", ".join(f"{k}={v}" for k, v in sorted(summary.items())))
 
     if report:
-        os.makedirs(os.path.dirname(report), exist_ok=True)
+        report_dir = os.path.dirname(report)
+        if report_dir:  # caminho sem diretório (ex.: "license-report.md") -> diretório atual
+            os.makedirs(report_dir, exist_ok=True)
         with open(report, "w", encoding="utf-8") as f:
             f.write("# Inventário de licenças\n\n")
             f.write("> Gerado automaticamente por `scripts/check-licenses.py` a partir dos `packages.lock.json` "
